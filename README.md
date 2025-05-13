@@ -1,6 +1,5 @@
 ## Sistema de Controle Financeiro com Multi-Tenancy
 
-### Documentação RFC - em andamento:
+### Documentação RFC - Pronto para análise inicial dos professores:
 
-
-[Sistema de Controle Financeiro.pdf](https://github.com/user-attachments/files/19839820/Sistema.de.Controle.Financeiro.pdf)
+[Sistema de Controle Financeiro.pdf](https://github.com/user-attachments/files/20196914/Sistema.de.Controle.Financeiro.pdf)
