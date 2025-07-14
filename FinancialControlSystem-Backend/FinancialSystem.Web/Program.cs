@@ -1,4 +1,6 @@
-using Microsoft.EntityFrameworkCore;
+using FinancialSystem.EntityFrameworkCore.Context;
+using FinancialSystem.EntityFrameworkCore.Repositories;
+using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
        .AddEnvironmentVariables();
+
+builder.Services.AddDbContext<DataContext>();
 
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var configuration = builder.Configuration;
@@ -27,6 +31,7 @@ builder.Services.AddCors(options =>
 var envName = configuration.GetSection("EnvironmentName").Value;
 var versionName = configuration.GetSection("VersionName").Value;
 
+// Swagger
 builder.Services.AddSwaggerGen(swagger =>
 {
     swagger.CustomSchemaIds(type => type.ToString());
@@ -52,7 +57,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 //});
 
 //builder.Services.AddScoped<IQACodaiPaymentAppService, QACodaiPaymentAppService>();
-//builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped(typeof(IGeneralRepository<>), typeof(GeneralRepository<>));
 
 builder.Services.AddOptions();
 
