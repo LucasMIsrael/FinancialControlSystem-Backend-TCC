@@ -8,6 +8,11 @@ namespace FinancialSystem.Core.Entities
     [Audited]
     public class User : FullAuditedEntity<Guid>
     {
+        public User()
+        {
+            CreationTime = DateTime.UtcNow;
+        }
+
         public string Name { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
