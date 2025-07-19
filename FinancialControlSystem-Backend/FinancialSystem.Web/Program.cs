@@ -1,3 +1,5 @@
+using FinancialSystem.Application.Services.UserSettings;
+using FinancialSystem.Application.Shared.Interfaces.UserSettings;
 using FinancialSystem.EntityFrameworkCore.Context;
 using FinancialSystem.EntityFrameworkCore.Repositories;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
@@ -56,8 +58,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 //    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 //});
 
-//builder.Services.AddScoped<IQACodaiPaymentAppService, QACodaiPaymentAppService>();
 builder.Services.AddScoped(typeof(IGeneralRepository<>), typeof(GeneralRepository<>));
+builder.Services.AddScoped<IUserSettingsAppService, UserSettingsAppService>();
+
 
 builder.Services.AddOptions();
 

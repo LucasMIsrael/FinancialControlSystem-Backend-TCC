@@ -59,13 +59,35 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
 
         public async Task UpdateAsync(TEntity entity)
         {
+            var dataProperty = typeof(TEntity).GetProperty("LastModificationTime");
+            if (dataProperty != null)
+            {
+                dataProperty.SetValue(entity, DateTime.UtcNow);
+            }
+
             _dbSet.Update(entity);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(TEntity entity)
         {
-            _dbSet.Remove(entity);
+            var property = typeof(TEntity).GetProperty("IsDeleted");
+            if (property != null && property.PropertyType == typeof(bool))
+            {
+                property.SetValue(entity, true);
+
+                var dataProperty = typeof(TEntity).GetProperty("DeletionTime");
+
+                if (dataProperty != null)
+                    dataProperty.SetValue(entity, DateTime.UtcNow);
+
+                _dbSet.Update(entity);
+            }
+            else
+            {
+                _dbSet.Remove(entity);
+            }
+
             await _context.SaveChangesAsync();
         }
 
@@ -77,13 +99,35 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
 
         public void Update(TEntity entity)
         {
+            var dataProperty = typeof(TEntity).GetProperty("LastModificationTime");
+            if (dataProperty != null)
+            {
+                dataProperty.SetValue(entity, DateTime.UtcNow);
+            }
+
             _dbSet.Update(entity);
             _context.SaveChanges();
         }
 
         public void Delete(TEntity entity)
         {
-            _dbSet.Remove(entity);
+            var property = typeof(TEntity).GetProperty("IsDeleted");
+            if (property != null && property.PropertyType == typeof(bool))
+            {
+                property.SetValue(entity, true);                
+
+                var dataProperty = typeof(TEntity).GetProperty("DeletionTime");
+
+                if (dataProperty != null)
+                    dataProperty.SetValue(entity, DateTime.UtcNow);
+
+                _dbSet.Update(entity);
+            }
+            else
+            {
+                _dbSet.Remove(entity);
+            }            
+
             _context.SaveChanges();
         }
     }

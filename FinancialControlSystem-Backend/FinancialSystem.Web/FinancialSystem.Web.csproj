@@ -25,10 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\FinancialSystem.Application.Shared\FinancialSystem.Application.Shared.csproj" />
+    <ProjectReference Include="..\FinancialSystem.Application\FinancialSystem.Application.csproj" />
     <ProjectReference Include="..\FinancialSystem.EntityFrameworkCore\FinancialSystem.EntityFrameworkCore.csproj" />
   </ItemGroup>
 
