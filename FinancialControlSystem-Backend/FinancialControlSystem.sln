@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialSystem.Core", "Fin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialSystem.EntityFrameworkCore", "FinancialSystem.EntityFrameworkCore\FinancialSystem.EntityFrameworkCore.csproj", "{F4CBD95C-20CE-4FDC-80F5-17DB62C0976F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialSystem.Test", "FinancialSystem.Test\FinancialSystem.Test.csproj", "{B7701ABD-5E7F-4D06-8C3D-2D83E23DC73B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{F4CBD95C-20CE-4FDC-80F5-17DB62C0976F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4CBD95C-20CE-4FDC-80F5-17DB62C0976F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4CBD95C-20CE-4FDC-80F5-17DB62C0976F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7701ABD-5E7F-4D06-8C3D-2D83E23DC73B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7701ABD-5E7F-4D06-8C3D-2D83E23DC73B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7701ABD-5E7F-4D06-8C3D-2D83E23DC73B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7701ABD-5E7F-4D06-8C3D-2D83E23DC73B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
