@@ -14,5 +14,25 @@ namespace FinancialSystem.Application.Services.UserSettings
             _userRepository = userRepository;
         }
 
+        public async Task RegisterAsync(UserDataDto input)
+        {
+            if (input == null)
+                throw new Exception("sem informações de cadastro");
+
+            var userData = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = input.Email,
+                Name = input.Name,
+                Password = input.Password
+            };
+
+            await _userRepository.InsertAsync(userData);
+        }
+
+        public async Task<User?> LoginAsync(string email, string password)
+        {
+            return await _userRepository.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
+        }
     }
 }
