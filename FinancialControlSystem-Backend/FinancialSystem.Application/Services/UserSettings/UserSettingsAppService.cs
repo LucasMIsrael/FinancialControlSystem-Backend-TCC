@@ -19,6 +19,11 @@ namespace FinancialSystem.Application.Services.UserSettings
             if (input == null)
                 throw new Exception("sem informações de cadastro");
 
+            var existingUser = await _userRepository.FirstOrDefaultAsync(x => x.Email == input.Email);
+
+            if (existingUser != null)
+                throw new Exception("Já existe um usuário cadastrado com este email");
+
             var userData = new User
             {
                 Id = Guid.NewGuid(),
