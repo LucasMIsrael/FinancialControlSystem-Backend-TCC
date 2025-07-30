@@ -1,15 +1,11 @@
 ﻿using FinancialSystem.Application.Shared.Dtos.User;
 using FinancialSystem.Application.Shared.Interfaces.UserSettings;
-using FinancialSystem.Core.Entities;
-using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace FinancialSystem.Web.Controllers.LoginAndRegister
 {
-    [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/loginAndRegister")]
+    [ApiController]    
     public class LoginAndRegisterController : Controller
     {
         private readonly IUserSettingsAppService _userSettingsAppService;
@@ -19,5 +15,18 @@ namespace FinancialSystem.Web.Controllers.LoginAndRegister
             _userSettingsAppService = userSettingsAppService;
         }
 
+        [HttpPost("register/user")]
+        public async Task<IActionResult> UserRegistrationController(UserDataDto input)
+        {
+            try
+            {
+                await _userSettingsAppService.RegisterAsync(input);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
