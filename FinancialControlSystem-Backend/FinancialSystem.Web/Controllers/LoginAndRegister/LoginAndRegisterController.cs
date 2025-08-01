@@ -20,8 +20,22 @@ namespace FinancialSystem.Web.Controllers.LoginAndRegister
         {
             try
             {
-                await _userSettingsAppService.RegisterAsync(input);
+                await _userSettingsAppService.RegisterUser(input);
                 return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("login/user")]
+        public async Task<IActionResult> UserLoginController(UserDataDto input)
+        {
+            try
+            {
+                var token = await _userSettingsAppService.UserLogin(input);
+                return Ok(new { token });
             }
             catch (Exception ex)
             {

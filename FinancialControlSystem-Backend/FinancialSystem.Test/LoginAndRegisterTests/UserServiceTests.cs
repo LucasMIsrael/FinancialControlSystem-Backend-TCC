@@ -1,7 +1,9 @@
 ﻿using FinancialSystem.Application.Services.UserSettings;
 using FinancialSystem.Application.Shared.Dtos.User;
 using FinancialSystem.Core.Entities;
+using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using Microsoft.Extensions.Options;
 using Moq;
 using System.Linq.Expressions;
 
@@ -14,6 +16,8 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
         {
             //arrange
             var mockRepo = new Mock<IGeneralRepository<User>>();
+            var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+
             var user = new UserDataDto
             {
                 Name = "João Silva",
@@ -23,10 +27,10 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
 
             mockRepo.Setup(r => r.InsertAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
 
-            var service = new UserSettingsAppService(mockRepo.Object);
+            var service = new UserSettingsAppService(mockRepo.Object, mockJwtSettings.Object);
 
             //act e assert
-            var exception = await Record.ExceptionAsync(() => service.RegisterAsync(user));
+            var exception = await Record.ExceptionAsync(() => service.RegisterUser(user));
 
             Assert.Null(exception);
         }
@@ -40,37 +44,50 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
             var validEmail = "joao@email.com";
             var validPassword = "123456";
 
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(validPassword);
+
             var expectedUser = new User
             {
                 Id = Guid.NewGuid(),
                 Name = "João Silva",
                 Email = validEmail,
-                Password = validPassword
+                Password = hashedPassword
             };
 
             mockRepo.Setup(r => r.FirstOrDefaultAsync(
                 It.IsAny<Expression<Func<User, bool>>>()
             )).ReturnsAsync((Expression<Func<User, bool>> predicate) =>
             {
-                //simula comportamento
                 var compiled = predicate.Compile();
                 return compiled(expectedUser) ? expectedUser : null;
             });
 
-            var service = new UserSettingsAppService(mockRepo.Object);
+            var loginDto = new UserDataDto
+            {
+                Email = validEmail,
+                Password = validPassword
+            };
+
+            var jwtSettings = new JwtSettings
+            {
+                Secret = "u03g*Lp7K#qT^Zb!r9Jx$dE@N8fV!mR2aWcX6sH1"
+            };
+
+            var options = Options.Create(jwtSettings);
+            var service = new UserSettingsAppService(mockRepo.Object, options);
 
             //act
-            var result = await service.LoginAsync(validEmail, validPassword);
+            var result = await service.UserLogin(loginDto);
 
             //assert
             Assert.NotNull(result);
-            Assert.Equal(expectedUser.Email, result.Email);
+            Assert.Contains(".", result); //verifica retorno tem estrutura de JWT
         }
 
         [Fact]
-        public async Task ShouldReturnNullWhenCredentialsAreInvalid()
+        public async Task ShouldThrowExceptionWhenCredentialsAreInvalid()
         {
-            // Arrange
+            //arrange
             var mockRepo = new Mock<IGeneralRepository<User>>();
 
             var validUser = new User
@@ -88,13 +105,25 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
                     return compiled(validUser) ? validUser : null;
                 });
 
-            var service = new UserSettingsAppService(mockRepo.Object);
+            var jwtSettings = new JwtSettings
+            {
+                Secret = "u03g*Lp7K#qT^Zb!r9Jx$dE@N8fV!mR2aWcX6sH1"
+            };
 
-            // Act
-            var result = await service.LoginAsync("email@errado.com", "senhaerrada");
+            var jwtOptions = Options.Create(jwtSettings);
+            var service = new UserSettingsAppService(mockRepo.Object, jwtOptions);
 
-            // Assert
-            Assert.Null(result);
+            var invalidLogin = new UserDataDto
+            {
+                Email = "email@errado.com",
+                Password = "senhaerrada"
+            };
+
+            //act
+            var exception = await Assert.ThrowsAsync<Exception>(() => service.UserLogin(invalidLogin));
+
+            //assert
+            Assert.Equal("Email ou senha inválidos.", exception.Message);
         }
     }
 }
