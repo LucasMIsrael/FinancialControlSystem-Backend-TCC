@@ -20,8 +20,10 @@ jobs:
       with:
         dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore FinancialControlSystem-Backend/FinancialControlSystem.sln
+
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build FinancialControlSystem-Backend/FinancialControlSystem.sln --no-restore --configuration Release
+
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test FinancialControlSystem-Backend/FinancialControlSystem.sln --no-build --configuration Release --verbosity normal
