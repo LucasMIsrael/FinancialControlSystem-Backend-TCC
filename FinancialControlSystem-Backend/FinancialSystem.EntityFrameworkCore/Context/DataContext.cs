@@ -9,6 +9,7 @@ namespace FinancialSystem.EntityFrameworkCore.Context
         private IConfiguration _configuration;
 
         public DbSet<User> User { get; set; }
+        public DbSet<Environments> Environments { get; set; }
 
         public DataContext(IConfiguration configuration, DbContextOptions options) : base(options)
         {
