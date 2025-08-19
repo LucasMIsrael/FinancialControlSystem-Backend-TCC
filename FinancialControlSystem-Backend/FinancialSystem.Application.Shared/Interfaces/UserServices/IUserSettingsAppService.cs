@@ -1,6 +1,6 @@
 ﻿using FinancialSystem.Application.Shared.Dtos.User;
 
-namespace FinancialSystem.Application.Shared.Interfaces.UserSettings
+namespace FinancialSystem.Application.Shared.Interfaces.UserServices
 {
     public interface IUserSettingsAppService
     {

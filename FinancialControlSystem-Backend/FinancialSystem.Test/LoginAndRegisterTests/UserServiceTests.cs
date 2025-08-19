@@ -1,4 +1,4 @@
-﻿using FinancialSystem.Application.Services.UserSettings;
+﻿using FinancialSystem.Application.Services.UserServices;
 using FinancialSystem.Application.Shared.Dtos.User;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Settings;
