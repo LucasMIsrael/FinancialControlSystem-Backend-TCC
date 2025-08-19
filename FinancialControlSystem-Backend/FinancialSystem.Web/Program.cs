@@ -1,5 +1,7 @@
-using FinancialSystem.Application.Services.UserSettings;
-using FinancialSystem.Application.Shared.Interfaces.UserSettings;
+using FinancialSystem.Application.Services.EnvironmentServices;
+using FinancialSystem.Application.Services.UserServices;
+using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
+using FinancialSystem.Application.Shared.Interfaces.UserServices;
 using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Context;
 using FinancialSystem.EntityFrameworkCore.Repositories;
@@ -84,6 +86,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped(typeof(IGeneralRepository<>), typeof(GeneralRepository<>));
 builder.Services.AddScoped<IUserSettingsAppService, UserSettingsAppService>();
+builder.Services.AddScoped<IEnvironmentSettingsAppService, EnvironmentSettingsAppService>();
 
 
 builder.Services.AddOptions();

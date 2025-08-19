@@ -1,5 +1,5 @@
 ﻿using FinancialSystem.Application.Shared.Dtos.User;
-using FinancialSystem.Application.Shared.Interfaces.UserSettings;
+using FinancialSystem.Application.Shared.Interfaces.UserServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinancialSystem.Web.Controllers.LoginAndRegister

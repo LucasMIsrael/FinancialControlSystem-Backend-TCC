@@ -1,5 +1,5 @@
 ﻿using FinancialSystem.Application.Shared.Dtos.User;
-using FinancialSystem.Application.Shared.Interfaces.UserSettings;
+using FinancialSystem.Application.Shared.Interfaces.UserServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
@@ -9,7 +9,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace FinancialSystem.Application.Services.UserSettings
+namespace FinancialSystem.Application.Services.UserServices
 {
     public class UserSettingsAppService : IUserSettingsAppService
     {
