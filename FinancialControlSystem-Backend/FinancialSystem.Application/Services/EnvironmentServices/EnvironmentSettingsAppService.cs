@@ -1,45 +1,139 @@
-﻿using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
+﻿using FinancialSystem.Application.Shared.Dtos.Environment;
+using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
 using FinancialSystem.Core.Entities;
-using FinancialSystem.Core.Enums;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
     public class EnvironmentSettingsAppService : IEnvironmentSettingsAppService
     {
         private readonly IGeneralRepository<Environments> _environmentsRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EnvironmentSettingsAppService(IGeneralRepository<Environments> environmentsRepository)
+        public EnvironmentSettingsAppService(IGeneralRepository<Environments> environmentsRepository,
+                                             IHttpContextAccessor httpContextAccessor)
         {
             _environmentsRepository = environmentsRepository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task InsertAndUpdateEnvironment(string desc, string name, EnvironmentTypeEnum type, Guid userId)
+        #region InsertOrUpdateEnvironment
+        public async Task InsertOrUpdateEnvironment(EnvironmentDataDto input)
         {
-            if (string.IsNullOrEmpty(desc) || string.IsNullOrEmpty(name))
-                throw new Exception("Preencha todos os campos para continuar");
-        }
+            try
+            {
+                if (input.Id == null || input.Id == Guid.Empty)
+                {
+                    var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
+                    var newEnvironment = new Environments
+                    {
+                        Description = input.Description,
+                        Id = Guid.NewGuid(),
+                        Name = input.Name,
+                        Type = input.Type,
+                        UserId = Guid.Parse(userId)
+                    };
+
+                    await _environmentsRepository.InsertAsync(newEnvironment);
+                }
+                else
+                {
+                    var existingEnvironment = await _environmentsRepository.FirstOrDefaultAsync(x => x.Id == input.Id);
+
+                    if (existingEnvironment == null)
+                        throw new Exception("Ambiente não encontrado!");
+
+                    existingEnvironment.Description = input.Description;
+                    existingEnvironment.Name = input.Name;
+                    existingEnvironment.Type = input.Type;
+
+                    await _environmentsRepository.UpdateAsync(existingEnvironment);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        #endregion
+
+        #region DeleteEnvironment
         public async Task DeleteEnvironment(Guid envId)
         {
-            if (envId == Guid.Empty) throw new Exception("Ambiente não encontrado para exclusão");
-        }
+            var environment = await _environmentsRepository.FirstOrDefaultAsync(x => x.Id == envId);
 
-        public async Task<List<Environments>> GetAllEnvironments()
+            if (environment == null)
+                throw new Exception("Ambiente não encontrado para exclusão");
+
+            await _environmentsRepository.DeleteAsync(environment);
+        }
+        #endregion
+
+        #region GetAllEnvironments
+        public async Task<List<EnvironmentDataDto>> GetAllEnvironments()
         {
-            return new List<Environments>();
-        }
+            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-        public async Task<Environments> GetEnvironment(Guid envId)
+            var existingEnvironments = await _environmentsRepository.GetAll()
+                                                                    .Where(x => x.UserId == Guid.Parse(userId) &&
+                                                                               !x.IsDeleted)
+                                                                    .ToListAsync();
+            if (existingEnvironments.Count == 0)
+                return new List<EnvironmentDataDto>();
+
+            var outputList = new List<EnvironmentDataDto>();
+
+            existingEnvironments.ForEach(env =>
+            {
+                outputList.Add(new EnvironmentDataDto
+                {
+                    Description = env.Description,
+                    Id = env.Id,
+                    Name = env.Name,
+                    Type = env.Type,
+                    UserId = env.UserId,
+                });
+            });
+
+            //foreach (var environment in existingEnvironments)
+            //{
+            //    var environmentDto = new EnvironmentDataDto
+            //    {
+            //        Description = environment.Description,
+            //        Id = environment.Id,
+            //        Name = environment.Name,
+            //        Type = environment.Type,
+            //        UserId = environment.UserId
+            //    };
+
+            //    outputList.Add(environmentDto);
+            //}
+
+            return outputList;
+        }
+        #endregion
+
+        #region GetEnvironment
+        public async Task<EnvironmentDataDto> GetEnvironment(Guid envId)
         {
-            if (envId == Guid.Empty) throw new Exception("Ambiente não encontrado");
+            var environment = await _environmentsRepository.FirstOrDefaultAsync(x => x.Id == envId);
 
-            return new Environments();
+            if (environment == null)
+                return new EnvironmentDataDto();
+
+            return new EnvironmentDataDto
+            {
+                Description = environment.Description,
+                Id = environment.Id,
+                Name = environment.Name,
+                Type = environment.Type,
+                UserId = environment.UserId
+            };
         }
+        #endregion
     }
 }

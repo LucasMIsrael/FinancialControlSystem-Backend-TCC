@@ -16,8 +16,4 @@
     <ProjectReference Include="..\FinancialSystem.Core\FinancialSystem.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Dtos\Environment\" />
-  </ItemGroup>
-
 </Project>

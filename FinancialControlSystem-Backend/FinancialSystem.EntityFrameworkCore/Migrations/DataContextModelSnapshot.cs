@@ -67,7 +67,7 @@ namespace FinancialSystem.EntityFrameworkCore.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AppEnvironments");
+                    b.ToTable("AppEnvironments", (string)null);
                 });
 
             modelBuilder.Entity("FinancialSystem.Core.Entities.User", b =>
@@ -111,7 +111,7 @@ namespace FinancialSystem.EntityFrameworkCore.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppUser");
+                    b.ToTable("AppUser", (string)null);
                 });
 
             modelBuilder.Entity("FinancialSystem.Core.Entities.Environments", b =>
