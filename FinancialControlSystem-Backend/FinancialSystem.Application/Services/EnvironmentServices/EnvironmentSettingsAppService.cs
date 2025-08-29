@@ -20,39 +20,49 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             _httpContextAccessor = httpContextAccessor;
         }
 
-        #region InsertOrUpdateEnvironment
-        public async Task InsertOrUpdateEnvironment(EnvironmentDataDto input)
+        #region InsertEnvironment
+        public async Task InsertEnvironment(EnvironmentDataDto input)
+        {
+            try
+            {
+                var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                var newEnvironment = new Environments
+                {
+                    Description = input.Description,
+                    Id = Guid.NewGuid(),
+                    Name = input.Name,
+                    Type = input.Type,
+                    UserID = long.Parse(userId)
+                };
+
+                await _environmentsRepository.InsertAsync(newEnvironment);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        #endregion
+
+        #region UpdateEnvironment
+        public async Task UpdateEnvironment(EnvironmentDataDto input)
         {
             try
             {
                 if (input.Id == null || input.Id == Guid.Empty)
-                {
-                    var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                    throw new Exception("Identificador de ambiente não reconhecido!");
 
-                    var newEnvironment = new Environments
-                    {
-                        Description = input.Description,
-                        Id = Guid.NewGuid(),
-                        Name = input.Name,
-                        Type = input.Type,
-                        UserId = Guid.Parse(userId)
-                    };
+                var existingEnvironment = await _environmentsRepository.FirstOrDefaultAsync(x => x.Id == input.Id);
 
-                    await _environmentsRepository.InsertAsync(newEnvironment);
-                }
-                else
-                {
-                    var existingEnvironment = await _environmentsRepository.FirstOrDefaultAsync(x => x.Id == input.Id);
+                if (existingEnvironment == null)
+                    throw new Exception("Ambiente não encontrado!");
 
-                    if (existingEnvironment == null)
-                        throw new Exception("Ambiente não encontrado!");
+                existingEnvironment.Description = input.Description;
+                existingEnvironment.Name = input.Name;
+                existingEnvironment.Type = input.Type;
 
-                    existingEnvironment.Description = input.Description;
-                    existingEnvironment.Name = input.Name;
-                    existingEnvironment.Type = input.Type;
-
-                    await _environmentsRepository.UpdateAsync(existingEnvironment);
-                }
+                await _environmentsRepository.UpdateAsync(existingEnvironment);
             }
             catch (Exception ex)
             {
@@ -79,7 +89,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
             var existingEnvironments = await _environmentsRepository.GetAll()
-                                                                    .Where(x => x.UserId == Guid.Parse(userId) &&
+                                                                    .Where(x => x.UserID == long.Parse(userId) &&
                                                                                !x.IsDeleted)
                                                                     .ToListAsync();
             if (existingEnvironments.Count == 0)
@@ -95,23 +105,9 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                     Id = env.Id,
                     Name = env.Name,
                     Type = env.Type,
-                    UserId = env.UserId,
+                    UserId = env.UserID,
                 });
             });
-
-            //foreach (var environment in existingEnvironments)
-            //{
-            //    var environmentDto = new EnvironmentDataDto
-            //    {
-            //        Description = environment.Description,
-            //        Id = environment.Id,
-            //        Name = environment.Name,
-            //        Type = environment.Type,
-            //        UserId = environment.UserId
-            //    };
-
-            //    outputList.Add(environmentDto);
-            //}
 
             return outputList;
         }
@@ -131,7 +127,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 Id = environment.Id,
                 Name = environment.Name,
                 Type = environment.Type,
-                UserId = environment.UserId
+                UserId = environment.UserID
             };
         }
         #endregion

@@ -1,177 +1,219 @@
 ﻿using FinancialSystem.Application.Services.EnvironmentServices;
+using FinancialSystem.Application.Shared.Dtos.Environment;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using Microsoft.AspNetCore.Http;
 using Moq;
+using System.Linq.Expressions;
+using System.Security.Claims;
 
 namespace FinancialSystem.Test.EnvCreationAndEditingTests
 {
     public class EnvironmentServiceTests
     {
-        //[Fact]
-        //public async Task ShouldRegisterTheEnvSuccessfully()
-        //{
-        //    //arrange
-        //    var mockRepo = new Mock<IGeneralRepository<Environments>>();
+        [Fact]
+        public async Task ShouldInsertEnvironmentSuccessfully()
+        {
+            // arrange
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.InsertAsync(It.IsAny<Environments>())).Returns(Task.CompletedTask);
 
-        //    mockRepo.Setup(r => r.InsertAsync(It.IsAny<Environments>())).Returns(Task.CompletedTask);
+            var mockHttp = new Mock<IHttpContextAccessor>();
+            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "123") };
+            var identity = new ClaimsIdentity(claims, "TestAuth");
+            var user = new ClaimsPrincipal(identity);
+            var context = new DefaultHttpContext { User = user };
+            mockHttp.Setup(x => x.HttpContext).Returns(context);
 
-        //    var service = new EnvironmentSettingsAppService(mockRepo.Object);
+            var service = new EnvironmentSettingsAppService(mockRepo.Object, mockHttp.Object);
 
-        //    //act e assert
-        //    var exception = await Record.ExceptionAsync(() =>
-        //                    service.InsertOrUpdateEnvironment("description",
-        //                                                       "name",
-        //                                                       Core.Enums.EnvironmentTypeEnum.Personal,
-        //                                                       Guid.NewGuid()));
+            var input = new EnvironmentDataDto
+            {
+                Description = "desc",
+                Name = "EnvTest",
+                Type = Core.Enums.EnvironmentTypeEnum.Personal
+            };
 
-        //    Assert.Null(exception);
-        //}
+            // act
+            var exception = await Record.ExceptionAsync(() => service.InsertEnvironment(input));
 
-        //[Fact]
-        //public async Task ShouldThrowExceptionWhenInsertFails()
-        //{
-        //    // arrange
-        //    var mockRepo = new Mock<IGeneralRepository<Environments>>();
-        //    mockRepo.Setup(r => r.InsertAsync(It.IsAny<Environments>()))
-        //            .ThrowsAsync(new Exception("Insert failed"));
+            // assert
+            Assert.Null(exception);
+            mockRepo.Verify(r => r.InsertAsync(It.IsAny<Environments>()), Times.Once);
+        }
 
-        //    var service = new EnvironmentSettingsAppService(mockRepo.Object);
+        [Fact]
+        public async Task ShouldThrowExceptionWhenInsertFails()
+        {
+            // arrange
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.InsertAsync(It.IsAny<Environments>()))
+                    .ThrowsAsync(new Exception("Insert failed"));
 
-        //    // act & assert
-        //    await Assert.ThrowsAsync<Exception>(() =>
-        //        service.InsertOrUpdateEnvironment(null, null, Core.Enums.EnvironmentTypeEnum.Personal, Guid.NewGuid())
-        //    );
-        //}
+            var mockHttp = new Mock<IHttpContextAccessor>();
+            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "123") };
+            var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+            var context = new DefaultHttpContext { User = user };
+            mockHttp.Setup(x => x.HttpContext).Returns(context);
 
-        //[Fact]
-        //public async Task ShouldUpdateEnvironmentSuccessfully()
-        //{
-        //    // arrange
-        //    var mockRepo = new Mock<IGeneralRepository<Environments>>();
-        //    mockRepo.Setup(r => r.UpdateAsync(It.IsAny<Environments>())).Returns(Task.CompletedTask);
+            var service = new EnvironmentSettingsAppService(mockRepo.Object, mockHttp.Object);
 
-        //    var service = new EnvironmentSettingsAppService(mockRepo.Object);
+            var input = new EnvironmentDataDto { Description = "desc", Name = "EnvTest" };
 
-        //    // act
-        //    var exception = await Record.ExceptionAsync(() =>
-        //        service.InsertOrUpdateEnvironment("new description", "new name", Core.Enums.EnvironmentTypeEnum.Business, Guid.NewGuid())
-        //    );
+            // act & assert
+            await Assert.ThrowsAsync<Exception>(() => service.InsertEnvironment(input));
+        }
 
-        //    // assert
-        //    Assert.Null(exception);
-        //}
+        [Fact]
+        public async Task ShouldUpdateEnvironmentSuccessfully()
+        {
+            // arrange
+            var existingEnv = new Environments { Id = Guid.NewGuid(), Name = "Old", Description = "Old Desc" };
 
-        //[Fact]
-        //public async Task ShouldThrowExceptionWhenUpdateFails()
-        //{
-        //    // arrange
-        //    var mockRepo = new Mock<IGeneralRepository<Environments>>();
-        //    mockRepo.Setup(r => r.UpdateAsync(It.IsAny<Environments>()))
-        //            .ThrowsAsync(new Exception("Update failed"));
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
+                    .ReturnsAsync(existingEnv);
+            mockRepo.Setup(r => r.UpdateAsync(It.IsAny<Environments>())).Returns(Task.CompletedTask);
 
-        //    var service = new EnvironmentSettingsAppService(mockRepo.Object);
+            var mockHttp = new Mock<IHttpContextAccessor>();
+            var service = new EnvironmentSettingsAppService(mockRepo.Object, mockHttp.Object);
 
-        //    // act & assert
-        //    await Assert.ThrowsAsync<Exception>(() =>
-        //        service.InsertOrUpdateEnvironment(null, null, Core.Enums.EnvironmentTypeEnum.Family, Guid.NewGuid())
-        //    );
-        //}
+            var input = new EnvironmentDataDto
+            {
+                Id = existingEnv.Id,
+                Description = "New Desc",
+                Name = "New Name",
+                Type = Core.Enums.EnvironmentTypeEnum.Business
+            };
 
-        //[Fact]
-        //public async Task ShouldDeleteEnvironmentSuccessfully()
-        //{
-        //    // arrange
-        //    var mockRepo = new Mock<IGeneralRepository<Environments>>();
-        //    mockRepo.Setup(r => r.DeleteAsync(It.IsAny<Environments>())).Returns(Task.CompletedTask);
+            // act
+            var exception = await Record.ExceptionAsync(() => service.UpdateEnvironment(input));
 
-        //    var service = new EnvironmentSettingsAppService(mockRepo.Object);
+            // assert
+            Assert.Null(exception);
+            mockRepo.Verify(r => r.UpdateAsync(It.IsAny<Environments>()), Times.Once);
+        }
 
-        //    // act
-        //    var exception = await Record.ExceptionAsync(() =>
-        //        service.DeleteEnvironment(Guid.NewGuid())
-        //    );
+        [Fact]
+        public async Task ShouldThrowExceptionWhenEnvironmentNotFoundOnUpdate()
+        {
+            // arrange
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
+                    .ReturnsAsync((Environments)null);
 
-        //    // assert
-        //    Assert.Null(exception);
-        //}
+            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
 
-        //[Fact]
-        //public async Task ShouldThrowExceptionWhenDeleteFails()
-        //{
-        //    // arrange
-        //    var mockRepo = new Mock<IGeneralRepository<Environments>>();
-        //    mockRepo.Setup(r => r.DeleteAsync(It.IsAny<Environments>()))
-        //            .ThrowsAsync(new Exception("Delete failed"));
+            var input = new EnvironmentDataDto
+            {
+                Id = Guid.NewGuid(),
+                Description = "New Desc",
+                Name = "New Name",
+                Type = Core.Enums.EnvironmentTypeEnum.Business
+            };
 
-        //    var service = new EnvironmentSettingsAppService(mockRepo.Object);
+            // act & assert
+            await Assert.ThrowsAsync<Exception>(() => service.UpdateEnvironment(input));
+        }
 
-        //    // act & assert
-        //    await Assert.ThrowsAsync<Exception>(() =>
-        //        service.DeleteEnvironment(Guid.Empty)
-        //    );
-        //}
+        [Fact]
+        public async Task ShouldDeleteEnvironmentSuccessfully()
+        {
+            // arrange
+            var env = new Environments { Id = Guid.NewGuid(), Name = "EnvTest" };
 
-        //[Fact]
-        //public async Task ShouldReturnListOfEnvironments()
-        //{
-        //    // arrange
-        //    var mockRepo = new Mock<IGeneralRepository<Environments>>();
-        //    var environments = new List<Environments>
-        //    {
-        //        new Environments { Id = Guid.NewGuid(), Name = "Env1" },
-        //        new Environments { Id = Guid.NewGuid(), Name = "Env2" }
-        //    };
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
+                    .ReturnsAsync(env);
+            mockRepo.Setup(r => r.DeleteAsync(It.IsAny<Environments>())).Returns(Task.CompletedTask);
 
-        //    mockRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(environments);
+            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
 
-        //    var service = new EnvironmentSettingsAppService(mockRepo.Object);
+            // act
+            var exception = await Record.ExceptionAsync(() => service.DeleteEnvironment(env.Id));
 
-        //    // act
-        //    var result = await service.GetAllEnvironments();
+            // assert
+            Assert.Null(exception);
+        }
 
-        //    // assert
-        //    Assert.NotNull(result);
+        [Fact]
+        public async Task ShouldThrowExceptionWhenDeleteEnvironmentNotFound()
+        {
+            // arrange
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
+                    .ReturnsAsync((Environments)null);
 
-        //    if (result.Count > 0)
-        //    {
-        //        Assert.Equal(2, result.Count());
-        //    }
-        //    else
-        //        Assert.Equal(0, result.Count());
-        //}
+            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
 
-        //[Fact]
-        //public async Task ShouldReturnEnvironmentById()
-        //{
-        //    // arrange
-        //    var env = new Environments { Id = Guid.NewGuid(), Name = "TestEnv" };
+            // act & assert
+            await Assert.ThrowsAsync<Exception>(() => service.DeleteEnvironment(Guid.NewGuid()));
+        }
 
-        //    var mockRepo = new Mock<IGeneralRepository<Environments>>();
-        //    mockRepo.Setup(r => r.GetByIdAsync(env.Id)).ReturnsAsync(env);
+        [Fact]
+        public async Task ShouldReturnListOfEnvironments()
+        {
+            // arrange
+            var environments = new List<Environments>
+            {
+                new Environments { Id = Guid.NewGuid(), Name = "Env1", UserID = 123 },
+                new Environments { Id = Guid.NewGuid(), Name = "Env2", UserID = 123 }
+            };
 
-        //    var service = new EnvironmentSettingsAppService(mockRepo.Object);
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.GetAll()).Returns(environments.AsQueryable());
 
-        //    // act
-        //    var result = await service.GetEnvironment(env.Id);
+            var mockHttp = new Mock<IHttpContextAccessor>();
+            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "123") };
+            var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+            var context = new DefaultHttpContext { User = user };
+            mockHttp.Setup(x => x.HttpContext).Returns(context);
 
-        //    // assert
-        //    Assert.NotNull(result);
-        //}
+            var service = new EnvironmentSettingsAppService(mockRepo.Object, mockHttp.Object);
 
-        //[Fact]
-        //public async Task ShouldThrowExceptionWhenEnvironmentNotFound()
-        //{
-        //    // arrange
-        //    var mockRepo = new Mock<IGeneralRepository<Environments>>();
-        //    mockRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Environments)null);
+            // act
+            var result = await service.GetAllEnvironments();
 
-        //    var service = new EnvironmentSettingsAppService(mockRepo.Object);
+            // assert
+            Assert.Equal(2, result.Count);
+        }
 
-        //    // act
-        //    // assert
-        //    await Assert.ThrowsAsync<Exception>(() =>
-        //        service.GetEnvironment(Guid.Empty)
-        //    );
-        //}
+        [Fact]
+        public async Task ShouldReturnEnvironmentById()
+        {
+            // arrange
+            var env = new Environments { Id = Guid.NewGuid(), Name = "TestEnv", UserID = 123 };
+
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
+                    .ReturnsAsync(env);
+
+            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
+
+            // act
+            var result = await service.GetEnvironment(env.Id);
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Equal(env.Name, result.Name);
+        }
+
+        [Fact]
+        public async Task ShouldReturnEmptyDtoWhenEnvironmentNotFound()
+        {
+            // arrange
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
+                    .ReturnsAsync((Environments)null);
+
+            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
+
+            // act
+            var result = await service.GetEnvironment(Guid.NewGuid());
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Equal(null, result.Id);
+        }
     }
 }

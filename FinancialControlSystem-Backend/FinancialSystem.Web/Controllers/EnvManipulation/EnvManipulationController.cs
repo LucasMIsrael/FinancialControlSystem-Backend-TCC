@@ -16,13 +16,28 @@ namespace FinancialSystem.Web.Controllers.EnvManipulation
             _environmentSettingsAppService = environmentSettingsAppService;
         }
 
-        [HttpPost("createUpdate/environment")]
+        [HttpPost("create/environment")]
         [Authorize]
-        public async Task<IActionResult> EnvCreationAndUpdateController(EnvironmentDataDto input)
+        public async Task<IActionResult> EnvCreationController(EnvironmentDataDto input)
         {
             try
             {
-                await _environmentSettingsAppService.InsertOrUpdateEnvironment(input);
+                await _environmentSettingsAppService.InsertEnvironment(input);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("update/environment")]
+        [Authorize]
+        public async Task<IActionResult> EnvUpdateController(EnvironmentDataDto input)
+        {
+            try
+            {
+                await _environmentSettingsAppService.UpdateEnvironment(input);
                 return Ok();
             }
             catch (Exception ex)
