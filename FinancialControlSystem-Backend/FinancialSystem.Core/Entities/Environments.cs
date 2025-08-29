@@ -18,8 +18,8 @@ namespace FinancialSystem.Core.Entities
         public string Description { get; set; }
         public EnvironmentTypeEnum Type { get; set; }
 
-        [ForeignKey("UserId")]
-        public User User { get; set; }
-        public Guid UserId { get; set; }
+        [ForeignKey("UserID")]
+        public Users User { get; set; }
+        public long UserID { get; set; }
     }
 }

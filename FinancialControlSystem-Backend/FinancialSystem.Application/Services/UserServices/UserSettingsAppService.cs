@@ -13,13 +13,13 @@ namespace FinancialSystem.Application.Services.UserServices
 {
     public class UserSettingsAppService : IUserSettingsAppService
     {
-        private readonly IGeneralRepository<User> _userRepository;
+        private readonly IGeneralRepository<Users> _usersRepository;
         private readonly JwtSettings _jwtSettings;
 
-        public UserSettingsAppService(IGeneralRepository<User> userRepository,
+        public UserSettingsAppService(IGeneralRepository<Users> usersRepository,
                                       IOptions<JwtSettings> jwtOptions)
         {
-            _userRepository = userRepository;
+            _usersRepository = usersRepository;
             _jwtSettings = jwtOptions.Value;
         }
 
@@ -29,22 +29,21 @@ namespace FinancialSystem.Application.Services.UserServices
             if (input == null)
                 throw new Exception("sem informações de cadastro");
 
-            var existingUser = await _userRepository.FirstOrDefaultAsync(x => x.Email == input.Email);
+            var existingUser = await _usersRepository.FirstOrDefaultAsync(x => x.Email == input.Email);
 
             if (existingUser != null)
                 throw new Exception("Já existe um usuário cadastrado com este email");
 
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(input.Password);
 
-            var userData = new User
+            var userData = new Users
             {
-                Id = Guid.NewGuid(),
                 Email = input.Email,
                 Name = input.Name,
                 Password = hashedPassword
             };
 
-            await _userRepository.InsertAsync(userData);
+            await _usersRepository.InsertAsync(userData);
         }
         #endregion
 
@@ -53,7 +52,7 @@ namespace FinancialSystem.Application.Services.UserServices
         {
             try
             {
-                var user = await _userRepository.FirstOrDefaultAsync(x => x.Email == input.Email &&
+                var user = await _usersRepository.FirstOrDefaultAsync(x => x.Email == input.Email &&
                                                                          !x.IsDeleted);
 
                 if (user == null || !BCrypt.Net.BCrypt.Verify(input.Password, user.Password))
@@ -66,6 +65,7 @@ namespace FinancialSystem.Application.Services.UserServices
                 {
                     Subject = new ClaimsIdentity(new[]
                     {
+                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                         new Claim(ClaimTypes.Name, user.Name),
                         new Claim(ClaimTypes.Email, user.Email)
                     }),

@@ -39,7 +39,7 @@ builder.Services.AddCors(options =>
 var envName = configuration.GetSection("EnvironmentName").Value;
 var versionName = configuration.GetSection("VersionName").Value;
 
-// Swagger
+// Swagger + JWT
 builder.Services.AddSwaggerGen(swagger =>
 {
     swagger.CustomSchemaIds(type => type.ToString());
@@ -47,6 +47,32 @@ builder.Services.AddSwaggerGen(swagger =>
     {
         Version = versionName,
         Title = $"FinancialSystem.Web API - {envName}"
+    });
+
+    // Configuração do JWT no Swagger
+    swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Insira o token JWT desta forma: Bearer {seu token}"
+    });
+
+    swagger.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
     });
 });
 
@@ -58,11 +84,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
 });
-//}).AddNewtonsoftJson(options =>
-//{
-//    options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Include;
-//    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
-//});
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 
@@ -79,15 +100,17 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
         ValidateIssuer = false,
-        ValidateAudience = false
+        ValidateAudience = false,
+        //ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        //ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        ClockSkew = TimeSpan.Zero // sem tolerância extra pro token expirar
     };
 });
-
 
 builder.Services.AddScoped(typeof(IGeneralRepository<>), typeof(GeneralRepository<>));
 builder.Services.AddScoped<IUserSettingsAppService, UserSettingsAppService>();
 builder.Services.AddScoped<IEnvironmentSettingsAppService, EnvironmentSettingsAppService>();
-
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddOptions();
 
@@ -108,6 +131,6 @@ app.UseCors(myAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseEndpoints(endpoints => endpoints.MapControllers());
+app.MapControllers();
 
 app.Run();

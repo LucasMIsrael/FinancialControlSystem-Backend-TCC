@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FinancialSystem.Core.Entities
 {
-    [Table("AppUser")]
+    [Table("AppUsers")]
     [Audited]
-    public class User : FullAuditedEntity<Guid>
+    public class Users : FullAuditedEntity<long>
     {
-        public User()
+        public Users()
         {
             CreationTime = DateTime.UtcNow;
         }

@@ -15,7 +15,7 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
         public async Task ShouldRegisterUserSuccessfully()
         {
             //arrange
-            var mockRepo = new Mock<IGeneralRepository<User>>();
+            var mockRepo = new Mock<IGeneralRepository<Users>>();
             var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
 
             var user = new UserDataDto
@@ -25,7 +25,7 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
                 Password = "123456"
             };
 
-            mockRepo.Setup(r => r.InsertAsync(It.IsAny<User>())).Returns(Task.CompletedTask);
+            mockRepo.Setup(r => r.InsertAsync(It.IsAny<Users>())).Returns(Task.CompletedTask);
 
             var service = new UserSettingsAppService(mockRepo.Object, mockJwtSettings.Object);
 
@@ -39,24 +39,24 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
         public async Task ShouldLoginSuccessfullyWithValidCredentials()
         {
             //arrange
-            var mockRepo = new Mock<IGeneralRepository<User>>();
+            var mockRepo = new Mock<IGeneralRepository<Users>>();
 
             var validEmail = "joao@email.com";
             var validPassword = "123456";
 
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(validPassword);
 
-            var expectedUser = new User
+            var expectedUser = new Users
             {
-                Id = Guid.NewGuid(),
+                Id = 123,
                 Name = "João Silva",
                 Email = validEmail,
                 Password = hashedPassword
             };
 
             mockRepo.Setup(r => r.FirstOrDefaultAsync(
-                It.IsAny<Expression<Func<User, bool>>>()
-            )).ReturnsAsync((Expression<Func<User, bool>> predicate) =>
+                It.IsAny<Expression<Func<Users, bool>>>()
+            )).ReturnsAsync((Expression<Func<Users, bool>> predicate) =>
             {
                 var compiled = predicate.Compile();
                 return compiled(expectedUser) ? expectedUser : null;
@@ -88,18 +88,18 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
         public async Task ShouldThrowExceptionWhenCredentialsAreInvalid()
         {
             //arrange
-            var mockRepo = new Mock<IGeneralRepository<User>>();
+            var mockRepo = new Mock<IGeneralRepository<Users>>();
 
-            var validUser = new User
+            var validUser = new Users
             {
-                Id = Guid.NewGuid(),
+                Id = 123,
                 Name = "João Silva",
                 Email = "joao@email.com",
                 Password = "123456"
             };
 
-            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<User, bool>>>()))
-                .ReturnsAsync((Expression<Func<User, bool>> predicate) =>
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Users, bool>>>()))
+                .ReturnsAsync((Expression<Func<Users, bool>> predicate) =>
                 {
                     var compiled = predicate.Compile();
                     return compiled(validUser) ? validUser : null;
