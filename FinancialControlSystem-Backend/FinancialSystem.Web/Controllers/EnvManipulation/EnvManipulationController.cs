@@ -61,7 +61,7 @@ namespace FinancialSystem.Web.Controllers.EnvManipulation
             }
         }
 
-        [HttpGet("getAll/environment")]
+        [HttpGet("get/all/environment")]
         [Authorize]
         public async Task<IActionResult> GetAllEnvironmentsInList()
         {
