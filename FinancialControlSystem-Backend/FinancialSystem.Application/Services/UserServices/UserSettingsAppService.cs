@@ -3,6 +3,7 @@ using FinancialSystem.Application.Shared.Interfaces.UserServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -15,12 +16,15 @@ namespace FinancialSystem.Application.Services.UserServices
     {
         private readonly IGeneralRepository<Users> _usersRepository;
         private readonly JwtSettings _jwtSettings;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public UserSettingsAppService(IGeneralRepository<Users> usersRepository,
-                                      IOptions<JwtSettings> jwtOptions)
+                                      IOptions<JwtSettings> jwtOptions,
+                                      IHttpContextAccessor httpContextAccessor)
         {
             _usersRepository = usersRepository;
             _jwtSettings = jwtOptions.Value;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         #region RegisterUser
@@ -80,6 +84,43 @@ namespace FinancialSystem.Application.Services.UserServices
             {
                 throw new Exception(ex.Message);
             }
+        }
+        #endregion
+
+        #region GetUserInformations
+        public async Task<UserInfoForViewDto> GetUserInformations()
+        {
+            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            var user = await _usersRepository.FirstOrDefaultAsync(x => x.Id == long.Parse(userId));
+
+            if (user == null)
+                throw new Exception("Erro ao consultar dados de usuário");
+
+            return new UserInfoForViewDto
+            {
+                Email = user.Email,
+                Name = user.Name,
+                Id = user.Id
+            };
+        }
+        #endregion
+
+        #region UpdateUserInformations
+        public async Task UpdateUserInformations(UserDataDto input)
+        {
+            var user = await _usersRepository.FirstOrDefaultAsync(x => x.Id == input.Id);
+
+            if (user == null)
+                throw new Exception("Erro ao consultar usuário");
+
+            user.Name = input.Name;
+            user.Email = input.Email;
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(input.Password);
+
+            user.Password = hashedPassword;
+
+            await _usersRepository.UpdateAsync(user);
         }
         #endregion
     }
