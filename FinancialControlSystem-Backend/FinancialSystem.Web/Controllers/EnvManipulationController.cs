@@ -3,7 +3,7 @@ using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FinancialSystem.Web.Controllers.EnvManipulation
+namespace FinancialSystem.Web.Controllers
 {
     [Route("api/envManipulation")]
     [ApiController]

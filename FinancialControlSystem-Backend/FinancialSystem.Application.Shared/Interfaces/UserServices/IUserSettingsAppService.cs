@@ -6,5 +6,7 @@ namespace FinancialSystem.Application.Shared.Interfaces.UserServices
     {
         Task RegisterUser(UserDataDto input);
         Task<string> UserLogin(UserDataDto input);
+        Task<UserInfoForViewDto> GetUserInformations();
+        Task UpdateUserInformations(UserDataDto input);
     }
 }

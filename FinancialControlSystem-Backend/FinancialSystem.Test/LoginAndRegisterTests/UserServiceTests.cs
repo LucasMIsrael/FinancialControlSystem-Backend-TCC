@@ -3,9 +3,11 @@ using FinancialSystem.Application.Shared.Dtos.User;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
 using System.Linq.Expressions;
+using System.Security.Claims;
 
 namespace FinancialSystem.Test.LoginAndRegisterTests
 {
@@ -17,6 +19,7 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
             //arrange
             var mockRepo = new Mock<IGeneralRepository<Users>>();
             var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
 
             var user = new UserDataDto
             {
@@ -27,7 +30,7 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
 
             mockRepo.Setup(r => r.InsertAsync(It.IsAny<Users>())).Returns(Task.CompletedTask);
 
-            var service = new UserSettingsAppService(mockRepo.Object, mockJwtSettings.Object);
+            var service = new UserSettingsAppService(mockRepo.Object, mockJwtSettings.Object, mockHttpContextAccessor.Object);
 
             //act e assert
             var exception = await Record.ExceptionAsync(() => service.RegisterUser(user));
@@ -40,6 +43,7 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
         {
             //arrange
             var mockRepo = new Mock<IGeneralRepository<Users>>();
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
 
             var validEmail = "joao@email.com";
             var validPassword = "123456";
@@ -74,7 +78,7 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
             };
 
             var options = Options.Create(jwtSettings);
-            var service = new UserSettingsAppService(mockRepo.Object, options);
+            var service = new UserSettingsAppService(mockRepo.Object, options, mockHttpContextAccessor.Object);
 
             //act
             var result = await service.UserLogin(loginDto);
@@ -89,6 +93,7 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
         {
             //arrange
             var mockRepo = new Mock<IGeneralRepository<Users>>();
+            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
 
             var validUser = new Users
             {
@@ -111,7 +116,7 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
             };
 
             var jwtOptions = Options.Create(jwtSettings);
-            var service = new UserSettingsAppService(mockRepo.Object, jwtOptions);
+            var service = new UserSettingsAppService(mockRepo.Object, jwtOptions, mockHttpContextAccessor.Object);
 
             var invalidLogin = new UserDataDto
             {
@@ -124,6 +129,116 @@ namespace FinancialSystem.Test.LoginAndRegisterTests
 
             //assert
             Assert.Equal("Email ou senha inválidos.", exception.Message);
+        }
+
+        [Fact]
+        public async Task ShouldReturnUserInformationsSuccessfully()
+        {
+            // arrange
+            var user = new Users { Id = 123, Name = "John Doe", Email = "john@test.com" };
+
+            var mockRepo = new Mock<IGeneralRepository<Users>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Users, bool>>>()))
+                    .ReturnsAsync(user);
+
+            var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+
+            var mockHttp = new Mock<IHttpContextAccessor>();
+            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "123") };
+            var userPrincipal = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+            var context = new DefaultHttpContext { User = userPrincipal };
+            mockHttp.Setup(x => x.HttpContext).Returns(context);
+
+            var service = new UserSettingsAppService(mockRepo.Object, mockJwtSettings.Object, mockHttp.Object);
+
+            // act
+            var result = await service.GetUserInformations();
+
+            // assert
+            Assert.NotNull(result);
+            Assert.Equal(user.Name, result.Name);
+            Assert.Equal(user.Email, result.Email);
+            Assert.Equal(user.Id, result.Id);
+        }
+
+        [Fact]
+        public async Task ShouldThrowExceptionWhenUserNotFoundOnGetInformations()
+        {
+            // arrange
+            var mockRepo = new Mock<IGeneralRepository<Users>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Users, bool>>>()))
+                    .ReturnsAsync((Users)null);
+
+            var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+
+            var mockHttp = new Mock<IHttpContextAccessor>();
+            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "123") };
+            var userPrincipal = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+            var context = new DefaultHttpContext { User = userPrincipal };
+            mockHttp.Setup(x => x.HttpContext).Returns(context);
+
+            var service = new UserSettingsAppService(mockRepo.Object, mockJwtSettings.Object, mockHttp.Object);
+
+            // act & assert
+            await Assert.ThrowsAsync<Exception>(() => service.GetUserInformations());
+        }
+
+        [Fact]
+        public async Task ShouldUpdateUserInformationsSuccessfully()
+        {
+            // arrange
+            var existingUser = new Users { Id = 123, Name = "Old Name", Email = "old@test.com", Password = "old" };
+
+            var mockRepo = new Mock<IGeneralRepository<Users>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Users, bool>>>()))
+                    .ReturnsAsync(existingUser);
+            mockRepo.Setup(r => r.UpdateAsync(It.IsAny<Users>())).Returns(Task.CompletedTask);
+
+            var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+
+            var service = new UserSettingsAppService(mockRepo.Object, mockJwtSettings.Object, Mock.Of<IHttpContextAccessor>());
+
+            var input = new UserDataDto
+            {
+                Id = 123,
+                Name = "New Name",
+                Email = "new@test.com",
+                Password = "newpass"
+            };
+
+            // act
+            var exception = await Record.ExceptionAsync(() => service.UpdateUserInformations(input));
+
+            // assert
+            Assert.Null(exception);
+            mockRepo.Verify(r => r.UpdateAsync(It.Is<Users>(u =>
+                u.Name == "New Name" &&
+                u.Email == "new@test.com"
+            )), Times.Once);
+        }
+
+        [Fact]
+        public async Task ShouldThrowExceptionWhenUserNotFoundOnUpdate()
+        {
+            // arrange
+            var mockRepo = new Mock<IGeneralRepository<Users>>();
+            mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Users, bool>>>()))
+                    .ReturnsAsync((Users)null);
+
+            var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+
+            var service = new UserSettingsAppService(mockRepo.Object, mockJwtSettings.Object, Mock.Of<IHttpContextAccessor>());
+
+            var input = new UserDataDto
+            {
+                Id = 123,
+                Name = "Any",
+                Email = "any@test.com",
+                Password = "anypass"
+            };
+
+            // act & assert
+            await Assert.ThrowsAsync<Exception>(() => service.UpdateUserInformations(input));
         }
     }
 }
