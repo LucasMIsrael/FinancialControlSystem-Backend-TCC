@@ -10,6 +10,8 @@ namespace FinancialSystem.EntityFrameworkCore.Context
 
         public DbSet<Environments> Environments { get; set; }
         public DbSet<Users> Users { get; set; }
+        public DbSet<PlannedExpensesAndProfits> PlannedExpensesAndProfits { get; set; }
+        public DbSet<UnplannedExpensesAndProfits> UnplannedExpensesAndProfits { get; set; }
 
         public DataContext(IConfiguration configuration, DbContextOptions options) : base(options)
         {
