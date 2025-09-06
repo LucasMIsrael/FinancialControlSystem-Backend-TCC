@@ -9,7 +9,7 @@ using Moq;
 using System.Linq.Expressions;
 using System.Security.Claims;
 
-namespace FinancialSystem.Test.LoginAndRegisterTests
+namespace FinancialSystem.Test.UserTests
 {
     public class UserServiceTests
     {

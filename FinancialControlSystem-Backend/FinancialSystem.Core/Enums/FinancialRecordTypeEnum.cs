@@ -2,7 +2,7 @@
 {
     public enum FinancialRecordTypeEnum
     {
-        Profit = 1,
-        Expense = 2
+        Profit = 1,  //lucro
+        Expense = 2  //despesa
     }
 }
