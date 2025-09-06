@@ -7,7 +7,7 @@ using Moq;
 using System.Linq.Expressions;
 using System.Security.Claims;
 
-namespace FinancialSystem.Test.EnvCreationAndEditingTests
+namespace FinancialSystem.Test.EnvironmentTests
 {
     public class EnvironmentServiceTests
     {
