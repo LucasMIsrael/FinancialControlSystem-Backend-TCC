@@ -67,7 +67,7 @@ namespace FinancialSystem.EntityFrameworkCore.Migrations
 
                     b.HasIndex("UserID");
 
-                    b.ToTable("AppEnvironments");
+                    b.ToTable("AppEnvironments", (string)null);
                 });
 
             modelBuilder.Entity("FinancialSystem.Core.Entities.PlannedExpensesAndProfits", b =>
@@ -120,7 +120,7 @@ namespace FinancialSystem.EntityFrameworkCore.Migrations
 
                     b.HasIndex("EnvironmentId");
 
-                    b.ToTable("AppPlannedExpensesAndProfits");
+                    b.ToTable("AppPlannedExpensesAndProfits", (string)null);
                 });
 
             modelBuilder.Entity("FinancialSystem.Core.Entities.UnplannedExpensesAndProfits", b =>
@@ -170,7 +170,7 @@ namespace FinancialSystem.EntityFrameworkCore.Migrations
 
                     b.HasIndex("EnvironmentId");
 
-                    b.ToTable("AppUnplannedExpensesAndProfits");
+                    b.ToTable("AppUnplannedExpensesAndProfits", (string)null);
                 });
 
             modelBuilder.Entity("FinancialSystem.Core.Entities.Users", b =>
@@ -216,7 +216,7 @@ namespace FinancialSystem.EntityFrameworkCore.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppUsers");
+                    b.ToTable("AppUsers", (string)null);
                 });
 
             modelBuilder.Entity("FinancialSystem.Core.Entities.Environments", b =>

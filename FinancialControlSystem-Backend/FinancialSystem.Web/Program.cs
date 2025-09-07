@@ -110,6 +110,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped(typeof(IGeneralRepository<>), typeof(GeneralRepository<>));
 builder.Services.AddScoped<IUserSettingsAppService, UserSettingsAppService>();
 builder.Services.AddScoped<IEnvironmentSettingsAppService, EnvironmentSettingsAppService>();
+builder.Services.AddScoped<ITransactionAppService, TransactionAppService>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddOptions();

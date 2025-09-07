@@ -9,6 +9,11 @@ namespace FinancialSystem.Core.Entities
     [Audited]
     public class UnplannedExpensesAndProfits : FullAuditedEntity<Guid>
     {
+        public UnplannedExpensesAndProfits()
+        {
+            CreationTime = DateTime.UtcNow;
+        }
+
         [ForeignKey("EnvironmentId ")]
         public Environments Environment { get; set; }
         public Guid EnvironmentId { get; set; }
