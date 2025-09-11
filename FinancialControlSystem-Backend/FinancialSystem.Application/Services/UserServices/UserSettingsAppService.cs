@@ -1,9 +1,9 @@
 ﻿using FinancialSystem.Application.Shared.Dtos.User;
+using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Application.Shared.Interfaces.UserServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,19 +12,17 @@ using System.Text;
 
 namespace FinancialSystem.Application.Services.UserServices
 {
-    public class UserSettingsAppService : IUserSettingsAppService
+    public class UserSettingsAppService : AppServiceBase, IUserSettingsAppService
     {
         private readonly IGeneralRepository<Users> _usersRepository;
         private readonly JwtSettings _jwtSettings;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserSettingsAppService(IGeneralRepository<Users> usersRepository,
-                                      IOptions<JwtSettings> jwtOptions,
-                                      IHttpContextAccessor httpContextAccessor)
+        public UserSettingsAppService(IAppSession appSession,
+                                      IGeneralRepository<Users> usersRepository,
+                                      IOptions<JwtSettings> jwtOptions) : base(appSession)
         {
             _usersRepository = usersRepository;
             _jwtSettings = jwtOptions.Value;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         #region RegisterUser
@@ -57,7 +55,7 @@ namespace FinancialSystem.Application.Services.UserServices
             try
             {
                 var user = await _usersRepository.FirstOrDefaultAsync(x => x.Email == input.Email &&
-                                                                         !x.IsDeleted);
+                                                                          !x.IsDeleted);
 
                 if (user == null || !BCrypt.Net.BCrypt.Verify(input.Password, user.Password))
                     throw new Exception("Email ou senha inválidos.");
@@ -90,9 +88,7 @@ namespace FinancialSystem.Application.Services.UserServices
         #region GetUserInformations
         public async Task<UserInfoForViewDto> GetUserInformations()
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-            var user = await _usersRepository.FirstOrDefaultAsync(x => x.Id == long.Parse(userId));
+            var user = await _usersRepository.FirstOrDefaultAsync(x => x.Id == (long)UserId);
 
             if (user == null)
                 throw new Exception("Erro ao consultar dados de usuário");

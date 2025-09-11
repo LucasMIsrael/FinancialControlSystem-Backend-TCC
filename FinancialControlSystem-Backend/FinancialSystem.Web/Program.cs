@@ -1,11 +1,13 @@
 using FinancialSystem.Application.Services.EnvironmentServices;
 using FinancialSystem.Application.Services.UserServices;
+using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
 using FinancialSystem.Application.Shared.Interfaces.UserServices;
 using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Context;
 using FinancialSystem.EntityFrameworkCore.Repositories;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using FinancialSystem.Web;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -113,6 +115,14 @@ builder.Services.AddScoped<IEnvironmentSettingsAppService, EnvironmentSettingsAp
 builder.Services.AddScoped<ITransactionAppService, TransactionAppService>();
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddScoped<IAppSession, AppSession>();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(2);
+});
+
 builder.Services.AddOptions();
 
 var app = builder.Build();
@@ -124,6 +134,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "FinancialSystem.Web - Api"));
     app.UseHsts();
 }
+app.UseSession();
 
 app.UseRouting();
 
