@@ -1,23 +1,20 @@
 ﻿using FinancialSystem.Application.Shared.Dtos.Environment;
+using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
-    public class EnvironmentSettingsAppService : IEnvironmentSettingsAppService
+    public class EnvironmentSettingsAppService : AppServiceBase, IEnvironmentSettingsAppService
     {
         private readonly IGeneralRepository<Environments> _environmentsRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EnvironmentSettingsAppService(IGeneralRepository<Environments> environmentsRepository,
-                                             IHttpContextAccessor httpContextAccessor)
+        public EnvironmentSettingsAppService(IAppSession appSession,
+                                             IGeneralRepository<Environments> environmentsRepository) : base(appSession)
         {
             _environmentsRepository = environmentsRepository;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         #region InsertEnvironment
@@ -25,7 +22,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
         {
             try
             {
-                var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                //var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
                 var newEnvironment = new Environments
                 {
@@ -33,7 +30,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                     Id = Guid.NewGuid(),
                     Name = input.Name,
                     Type = input.Type,
-                    UserID = long.Parse(userId)
+                    UserID = (long)UserId
                 };
 
                 await _environmentsRepository.InsertAsync(newEnvironment);
@@ -86,10 +83,8 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
         #region GetAllEnvironments
         public async Task<List<EnvironmentDataDto>> GetAllEnvironments()
         {
-            var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-
             var existingEnvironments = await _environmentsRepository.GetAll()
-                                                                    .Where(x => x.UserID == long.Parse(userId) &&
+                                                                    .Where(x => x.UserID == (long)UserId &&
                                                                                !x.IsDeleted)
                                                                     .ToListAsync();
             if (existingEnvironments.Count == 0)

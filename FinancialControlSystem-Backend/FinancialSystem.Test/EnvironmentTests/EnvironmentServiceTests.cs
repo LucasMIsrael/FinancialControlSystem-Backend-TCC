@@ -1,11 +1,10 @@
 ﻿using FinancialSystem.Application.Services.EnvironmentServices;
 using FinancialSystem.Application.Shared.Dtos.Environment;
+using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
-using Microsoft.AspNetCore.Http;
 using Moq;
 using System.Linq.Expressions;
-using System.Security.Claims;
 
 namespace FinancialSystem.Test.EnvironmentTests
 {
@@ -18,14 +17,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             var mockRepo = new Mock<IGeneralRepository<Environments>>();
             mockRepo.Setup(r => r.InsertAsync(It.IsAny<Environments>())).Returns(Task.CompletedTask);
 
-            var mockHttp = new Mock<IHttpContextAccessor>();
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "123") };
-            var identity = new ClaimsIdentity(claims, "TestAuth");
-            var user = new ClaimsPrincipal(identity);
-            var context = new DefaultHttpContext { User = user };
-            mockHttp.Setup(x => x.HttpContext).Returns(context);
+            var mockAppSession = new Mock<IAppSession>();
+            mockAppSession.Setup(x => x.UserId).Returns(123); // simula usuário logado
+            mockAppSession.SetupProperty(x => x.EnvironmentId); // se precisar setar no fluxo
 
-            var service = new EnvironmentSettingsAppService(mockRepo.Object, mockHttp.Object);
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
 
             var input = new EnvironmentDataDto
             {
@@ -50,13 +46,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockRepo.Setup(r => r.InsertAsync(It.IsAny<Environments>()))
                     .ThrowsAsync(new Exception("Insert failed"));
 
-            var mockHttp = new Mock<IHttpContextAccessor>();
-            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "123") };
-            var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
-            var context = new DefaultHttpContext { User = user };
-            mockHttp.Setup(x => x.HttpContext).Returns(context);
+            var mockAppSession = new Mock<IAppSession>();
+            mockAppSession.Setup(x => x.UserId).Returns(123);
+            mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new EnvironmentSettingsAppService(mockRepo.Object, mockHttp.Object);
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
 
             var input = new EnvironmentDataDto { Description = "desc", Name = "EnvTest" };
 
@@ -75,8 +69,11 @@ namespace FinancialSystem.Test.EnvironmentTests
                     .ReturnsAsync(existingEnv);
             mockRepo.Setup(r => r.UpdateAsync(It.IsAny<Environments>())).Returns(Task.CompletedTask);
 
-            var mockHttp = new Mock<IHttpContextAccessor>();
-            var service = new EnvironmentSettingsAppService(mockRepo.Object, mockHttp.Object);
+            var mockAppSession = new Mock<IAppSession>();
+            mockAppSession.Setup(x => x.UserId).Returns(123);
+            mockAppSession.SetupProperty(x => x.EnvironmentId);
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
 
             var input = new EnvironmentDataDto
             {
@@ -102,7 +99,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
                     .ReturnsAsync((Environments)null);
 
-            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
+            var mockAppSession = new Mock<IAppSession>();
+            mockAppSession.Setup(x => x.UserId).Returns(123);
+            mockAppSession.SetupProperty(x => x.EnvironmentId);
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
 
             var input = new EnvironmentDataDto
             {
@@ -127,7 +128,11 @@ namespace FinancialSystem.Test.EnvironmentTests
                     .ReturnsAsync(env);
             mockRepo.Setup(r => r.DeleteAsync(It.IsAny<Environments>())).Returns(Task.CompletedTask);
 
-            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
+            var mockAppSession = new Mock<IAppSession>();
+            mockAppSession.Setup(x => x.UserId).Returns(123);
+            mockAppSession.SetupProperty(x => x.EnvironmentId);
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
 
             // act
             var exception = await Record.ExceptionAsync(() => service.DeleteEnvironment(env.Id));
@@ -144,7 +149,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
                     .ReturnsAsync((Environments)null);
 
-            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
+            var mockAppSession = new Mock<IAppSession>();
+            mockAppSession.Setup(x => x.UserId).Returns(123);
+            mockAppSession.SetupProperty(x => x.EnvironmentId);
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
 
             // act & assert
             await Assert.ThrowsAsync<Exception>(() => service.DeleteEnvironment(Guid.NewGuid()));
@@ -188,7 +197,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
                     .ReturnsAsync(env);
 
-            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
+            var mockAppSession = new Mock<IAppSession>();
+            mockAppSession.Setup(x => x.UserId).Returns(123);
+            mockAppSession.SetupProperty(x => x.EnvironmentId);
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
 
             // act
             var result = await service.GetEnvironment(env.Id);
@@ -206,7 +219,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Environments, bool>>>()))
                     .ReturnsAsync((Environments)null);
 
-            var service = new EnvironmentSettingsAppService(mockRepo.Object, Mock.Of<IHttpContextAccessor>());
+            var mockAppSession = new Mock<IAppSession>();
+            mockAppSession.Setup(x => x.UserId).Returns(123);
+            mockAppSession.SetupProperty(x => x.EnvironmentId);
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
 
             // act
             var result = await service.GetEnvironment(Guid.NewGuid());

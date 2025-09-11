@@ -88,5 +88,12 @@ namespace FinancialSystem.Web.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPost("set/environment")]
+        public IActionResult SetEnvironment([FromBody] Guid environmentId)
+        {
+            HttpContext.Session.SetString("EnvironmentId", environmentId.ToString());
+            return Ok();
+        }
     }
 }

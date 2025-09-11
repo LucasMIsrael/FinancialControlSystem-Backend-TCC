@@ -1,4 +1,5 @@
 ﻿using FinancialSystem.Application.Shared.Dtos.Environment;
+using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Enums;
@@ -7,14 +8,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
-    public class TransactionAppService : ITransactionAppService
+    public class TransactionAppService : AppServiceBase, ITransactionAppService
     {
         private readonly IGeneralRepository<PlannedExpensesAndProfits> _plannedTransactionsRepository;
         private readonly IGeneralRepository<UnplannedExpensesAndProfits> _unplannedTransactionsRepository;
         private readonly TimeZoneInfo _tzBrasilia;
 
-        public TransactionAppService(IGeneralRepository<PlannedExpensesAndProfits> plannedTransactionsRepository,
-                                     IGeneralRepository<UnplannedExpensesAndProfits> unplannedTransactionsRepository)
+        public TransactionAppService(IAppSession appSession,
+                                     IGeneralRepository<PlannedExpensesAndProfits> plannedTransactionsRepository,
+                                     IGeneralRepository<UnplannedExpensesAndProfits> unplannedTransactionsRepository) : base(appSession)
         {
             _plannedTransactionsRepository = plannedTransactionsRepository;
             _unplannedTransactionsRepository = unplannedTransactionsRepository;
@@ -30,7 +32,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 {
                     Amount = input.Amount,
                     Description = input.Description,
-                    EnvironmentId = Guid.Parse("877e85aa-2ada-4e12-b0bb-b4eb9a6be61c"),
+                    EnvironmentId = (Guid)EnvironmentId,
                     Id = Guid.NewGuid(),
                     Type = (FinancialRecordTypeEnum)input.Type,
                     TransactionDate = TimeZoneInfo.ConvertTimeToUtc(input.TransactionDate, _tzBrasilia),
@@ -55,7 +57,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 {
                     Amount = input.Amount,
                     Description = input.Description,
-                    EnvironmentId = Guid.Parse("877e85aa-2ada-4e12-b0bb-b4eb9a6be61c"),
+                    EnvironmentId = (Guid)EnvironmentId,
                     Id = Guid.NewGuid(),
                     Type = (FinancialRecordTypeEnum)input.Type,
                     TransactionDate = TimeZoneInfo.ConvertTimeToUtc(input.TransactionDate, _tzBrasilia)
@@ -132,7 +134,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             {
                 var plannedTransactions = await _plannedTransactionsRepository
                                                 .GetAll()
-                                                .Where(x => x.EnvironmentId == Guid.Parse("877e85aa-2ada-4e12-b0bb-b4eb9a6be61c") &&
+                                                .Where(x => x.EnvironmentId == (Guid)EnvironmentId &&
                                                            !x.IsDeleted)
                                                 .ToListAsync();
 
@@ -170,7 +172,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             {
                 var unplannedTransactions = await _unplannedTransactionsRepository
                                                   .GetAll()
-                                                  .Where(x => x.EnvironmentId == Guid.Parse("877e85aa-2ada-4e12-b0bb-b4eb9a6be61c") &&
+                                                  .Where(x => x.EnvironmentId == (Guid)EnvironmentId &&
                                                              !x.IsDeleted)
                                                   .ToListAsync();
 
