@@ -8,6 +8,5 @@ namespace FinancialSystem.Application.Shared.Dtos.Environment
         public string Name { get; set; }
         public string Description { get; set; }
         public EnvironmentTypeEnum Type { get; set; }
-        public long UserId { get; set; }
     }
 }

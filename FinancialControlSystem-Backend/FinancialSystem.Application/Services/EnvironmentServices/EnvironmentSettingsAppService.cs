@@ -99,8 +99,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                     Description = env.Description,
                     Id = env.Id,
                     Name = env.Name,
-                    Type = env.Type,
-                    UserId = env.UserID,
+                    Type = env.Type
                 });
             });
 
@@ -121,8 +120,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 Description = environment.Description,
                 Id = environment.Id,
                 Name = environment.Name,
-                Type = environment.Type,
-                UserId = environment.UserID
+                Type = environment.Type
             };
         }
         #endregion
