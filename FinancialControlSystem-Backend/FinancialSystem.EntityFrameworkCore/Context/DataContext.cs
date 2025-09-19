@@ -8,7 +8,11 @@ namespace FinancialSystem.EntityFrameworkCore.Context
     {
         private IConfiguration _configuration;
 
-        public DbSet<User> User { get; set; }
+        public DbSet<Environments> Environments { get; set; }
+        public DbSet<Users> Users { get; set; }
+        public DbSet<PlannedExpensesAndProfits> PlannedExpensesAndProfits { get; set; }
+        public DbSet<UnplannedExpensesAndProfits> UnplannedExpensesAndProfits { get; set; }
+        public DbSet<Goals> Goals { get; set; }
 
         public DataContext(IConfiguration configuration, DbContextOptions options) : base(options)
         {

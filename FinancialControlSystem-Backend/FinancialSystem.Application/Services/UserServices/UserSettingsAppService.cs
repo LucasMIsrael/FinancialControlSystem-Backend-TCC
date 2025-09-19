@@ -1,5 +1,6 @@
 ﻿using FinancialSystem.Application.Shared.Dtos.User;
-using FinancialSystem.Application.Shared.Interfaces.UserSettings;
+using FinancialSystem.Application.Shared.Interfaces;
+using FinancialSystem.Application.Shared.Interfaces.UserServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
@@ -9,17 +10,18 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace FinancialSystem.Application.Services.UserSettings
+namespace FinancialSystem.Application.Services.UserServices
 {
-    public class UserSettingsAppService : IUserSettingsAppService
+    public class UserSettingsAppService : AppServiceBase, IUserSettingsAppService
     {
-        private readonly IGeneralRepository<User> _userRepository;
+        private readonly IGeneralRepository<Users> _usersRepository;
         private readonly JwtSettings _jwtSettings;
 
-        public UserSettingsAppService(IGeneralRepository<User> userRepository,
-                                      IOptions<JwtSettings> jwtOptions)
+        public UserSettingsAppService(IAppSession appSession,
+                                      IGeneralRepository<Users> usersRepository,
+                                      IOptions<JwtSettings> jwtOptions) : base(appSession)
         {
-            _userRepository = userRepository;
+            _usersRepository = usersRepository;
             _jwtSettings = jwtOptions.Value;
         }
 
@@ -29,22 +31,21 @@ namespace FinancialSystem.Application.Services.UserSettings
             if (input == null)
                 throw new Exception("sem informações de cadastro");
 
-            var existingUser = await _userRepository.FirstOrDefaultAsync(x => x.Email == input.Email);
+            var existingUser = await _usersRepository.FirstOrDefaultAsync(x => x.Email == input.Email);
 
             if (existingUser != null)
                 throw new Exception("Já existe um usuário cadastrado com este email");
 
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(input.Password);
 
-            var userData = new User
+            var userData = new Users
             {
-                Id = Guid.NewGuid(),
                 Email = input.Email,
                 Name = input.Name,
                 Password = hashedPassword
             };
 
-            await _userRepository.InsertAsync(userData);
+            await _usersRepository.InsertAsync(userData);
         }
         #endregion
 
@@ -53,8 +54,8 @@ namespace FinancialSystem.Application.Services.UserSettings
         {
             try
             {
-                var user = await _userRepository.FirstOrDefaultAsync(x => x.Email == input.Email &&
-                                                                         !x.IsDeleted);
+                var user = await _usersRepository.FirstOrDefaultAsync(x => x.Email == input.Email &&
+                                                                          !x.IsDeleted);
 
                 if (user == null || !BCrypt.Net.BCrypt.Verify(input.Password, user.Password))
                     throw new Exception("Email ou senha inválidos.");
@@ -66,6 +67,7 @@ namespace FinancialSystem.Application.Services.UserSettings
                 {
                     Subject = new ClaimsIdentity(new[]
                     {
+                        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                         new Claim(ClaimTypes.Name, user.Name),
                         new Claim(ClaimTypes.Email, user.Email)
                     }),
@@ -80,6 +82,41 @@ namespace FinancialSystem.Application.Services.UserSettings
             {
                 throw new Exception(ex.Message);
             }
+        }
+        #endregion
+
+        #region GetUserInformations
+        public async Task<UserInfoForViewDto> GetUserInformations()
+        {
+            var user = await _usersRepository.FirstOrDefaultAsync(x => x.Id == (long)UserId);
+
+            if (user == null)
+                throw new Exception("Erro ao consultar dados de usuário");
+
+            return new UserInfoForViewDto
+            {
+                Email = user.Email,
+                Name = user.Name,
+                Id = user.Id
+            };
+        }
+        #endregion
+
+        #region UpdateUserInformations
+        public async Task UpdateUserInformations(UserDataDto input)
+        {
+            var user = await _usersRepository.FirstOrDefaultAsync(x => x.Id == input.Id);
+
+            if (user == null)
+                throw new Exception("Erro ao consultar usuário");
+
+            user.Name = input.Name;
+            user.Email = input.Email;
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(input.Password);
+
+            user.Password = hashedPassword;
+
+            await _usersRepository.UpdateAsync(user);
         }
         #endregion
     }

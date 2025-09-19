@@ -2,10 +2,9 @@
 
 namespace FinancialSystem.Application.Shared.Dtos.User
 {
-    public class UserDataDto : EntityDto<long?>
+    public class UserInfoForViewDto : EntityDto<long?>
     {
         public string Name { get; set; }
         public string Email { get; set; }
-        public string Password { get; set; }
     }
 }

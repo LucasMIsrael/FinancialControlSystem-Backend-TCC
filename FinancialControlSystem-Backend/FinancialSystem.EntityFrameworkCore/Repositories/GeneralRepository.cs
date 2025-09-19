@@ -1,7 +1,9 @@
 ﻿using FinancialSystem.EntityFrameworkCore.Context;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Security.Claims;
 
 namespace FinancialSystem.EntityFrameworkCore.Repositories
 {
@@ -9,11 +11,14 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
     {
         private readonly DataContext _context;
         private readonly DbSet<TEntity> _dbSet;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public GeneralRepository(DataContext context)
+        public GeneralRepository(DataContext context,
+                                 IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _dbSet = _context.Set<TEntity>();
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<TEntity?> GetByIdAsync(Guid id)
@@ -53,12 +58,38 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
 
         public async Task InsertAsync(TEntity entity)
         {
+            if (typeof(TEntity).Name != "Users")
+            {
+                var prop = typeof(TEntity).GetProperty("CreatorUserId");
+                if (prop != null)
+                {
+                    var userId = long.Parse(
+                        _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value
+                    );
+
+                    prop.SetValue(entity, userId);
+                }
+            }
+
             await _dbSet.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(TEntity entity)
         {
+            if (typeof(TEntity).Name != "Users")
+            {
+                var prop = typeof(TEntity).GetProperty("LastModifierUserId");
+                if (prop != null)
+                {
+                    var userId = long.Parse(
+                        _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value
+                    );
+
+                    prop.SetValue(entity, userId);
+                }
+            }
+
             var dataProperty = typeof(TEntity).GetProperty("LastModificationTime");
             if (dataProperty != null)
             {
@@ -71,6 +102,19 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
 
         public async Task DeleteAsync(TEntity entity)
         {
+            if (typeof(TEntity).Name != "Users")
+            {
+                var prop = typeof(TEntity).GetProperty("DeleterUserId");
+                if (prop != null)
+                {
+                    var userId = long.Parse(
+                        _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value
+                    );
+
+                    prop.SetValue(entity, userId);
+                }
+            }
+
             var property = typeof(TEntity).GetProperty("IsDeleted");
             if (property != null && property.PropertyType == typeof(bool))
             {
@@ -93,12 +137,38 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
 
         public void Insert(TEntity entity)
         {
+            if (typeof(TEntity).Name != "Users")
+            {
+                var prop = typeof(TEntity).GetProperty("CreatorUserId");
+                if (prop != null)
+                {
+                    var userId = long.Parse(
+                        _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value
+                    );
+
+                    prop.SetValue(entity, userId);
+                }
+            }
+
             _dbSet.Add(entity);
             _context.SaveChanges();
         }
 
         public void Update(TEntity entity)
         {
+            if (typeof(TEntity).Name != "Users")
+            {
+                var prop = typeof(TEntity).GetProperty("LastModifierUserId");
+                if (prop != null)
+                {
+                    var userId = long.Parse(
+                        _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value
+                    );
+
+                    prop.SetValue(entity, userId);
+                }
+            }
+
             var dataProperty = typeof(TEntity).GetProperty("LastModificationTime");
             if (dataProperty != null)
             {
@@ -111,10 +181,23 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
 
         public void Delete(TEntity entity)
         {
+            if (typeof(TEntity).Name != "Users")
+            {
+                var prop = typeof(TEntity).GetProperty("DeleterUserId");
+                if (prop != null)
+                {
+                    var userId = long.Parse(
+                        _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value
+                    );
+
+                    prop.SetValue(entity, userId);
+                }
+            }
+
             var property = typeof(TEntity).GetProperty("IsDeleted");
             if (property != null && property.PropertyType == typeof(bool))
             {
-                property.SetValue(entity, true);                
+                property.SetValue(entity, true);
 
                 var dataProperty = typeof(TEntity).GetProperty("DeletionTime");
 
@@ -126,7 +209,7 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
             else
             {
                 _dbSet.Remove(entity);
-            }            
+            }
 
             _context.SaveChanges();
         }
