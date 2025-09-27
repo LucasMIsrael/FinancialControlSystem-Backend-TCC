@@ -22,8 +22,6 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
         {
             try
             {
-                //var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-
                 var newEnvironment = new Environments
                 {
                     Description = input.Description,

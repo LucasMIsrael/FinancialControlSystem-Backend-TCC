@@ -74,5 +74,20 @@ namespace FinancialSystem.Web.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPut("update/achieved/goals")]
+        [Authorize]
+        public async Task<IActionResult> AchievedGoalUpdateController()
+        {
+            try
+            {
+                await _goalsSettingsAppService.UpdateGoalsAchieved();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
