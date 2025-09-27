@@ -17,6 +17,9 @@ namespace FinancialSystem.Core.Entities
         public string Name { get; set; }
         public string Description { get; set; }
         public EnvironmentTypeEnum Type { get; set; }
+        public double TotalBalance { get; set; } = 0.00;
+        public int TotalGoalsAchieved { get; set; } = 0;
+        public FinancialControlLevelEnum FinancialControlLevel { get; set; } = FinancialControlLevelEnum.None;
 
         [ForeignKey("UserID")]
         public Users User { get; set; }
