@@ -1,12 +1,10 @@
-﻿using FinancialSystem.Application.Shared.Interfaces;
+﻿using FinancialSystem.Application.Shared.Dtos.Environment;
+using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
 using FinancialSystem.Core.Entities;
+using FinancialSystem.Core.Enums;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
@@ -19,5 +17,54 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
         {
             _environmentsRepository = environmentsRepository;
         }
+
+        #region GetRankingByAmbienteAsync
+        public async Task<List<RankingDto>> GetEnvironmentsForRanking()
+        {
+            var currentEnvironment = await _environmentsRepository.GetByIdAsync((Guid)EnvironmentId);
+
+            if (currentEnvironment == null)
+                throw new Exception("Ambiente atual não encontrado");
+
+            var otherEnvironments = await _environmentsRepository
+                                          .GetAll().Include(x => x.User)
+                                          .Where(x => x.Type == currentEnvironment.Type)
+                                          .ToListAsync();
+
+            var ranking = new List<RankingDto>();
+
+            foreach (var env in otherEnvironments)
+            {
+                ranking.Add(new RankingDto
+                {
+                    UserName = env.User?.Name ?? "Usuário desconhecido",
+                    TotalGoalsAchieved = env.TotalGoalsAchieved,
+                    EnvironmentLevel = GetLevelNamePt(env.FinancialControlLevel)
+                });
+            }
+
+            return ranking.OrderByDescending(r => r.TotalGoalsAchieved)
+                          .Take(10)
+                          .ToList();
+        }
+        #endregion
+
+        #region GetLevelNamePt
+        private string GetLevelNamePt(FinancialControlLevelEnum level)
+        {
+            return level switch
+            {
+                FinancialControlLevelEnum.None => string.Empty,
+                FinancialControlLevelEnum.Beginner => "Iniciante",
+                FinancialControlLevelEnum.Learning => "Aprendendo",
+                FinancialControlLevelEnum.Intermediate => "Intermediário",
+                FinancialControlLevelEnum.Advanced => "Avançado",
+                FinancialControlLevelEnum.Expert => "Especialista",
+                FinancialControlLevelEnum.Master => "Mestre",
+                FinancialControlLevelEnum.FinancialController => "Controlador Financeiro",
+                _ => string.Empty
+            };
+        }
+        #endregion
     }
 }

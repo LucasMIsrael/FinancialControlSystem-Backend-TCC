@@ -3,7 +3,7 @@
     public class RankingDto
     {
         public string UserName { get; set; }
-        public int NumberOfGoalsAchieved { get; set; }
+        public int TotalGoalsAchieved { get; set; }
         public string EnvironmentLevel { get; set; }
     }
 }
