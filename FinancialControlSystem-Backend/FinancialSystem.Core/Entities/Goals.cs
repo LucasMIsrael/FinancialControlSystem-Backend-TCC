@@ -23,7 +23,9 @@ namespace FinancialSystem.Core.Entities
         public double Value { get; set; }
         public bool? Status { get; set; }
         public GoalPeriodTypeEnum? PeriodType { get; set; }
-        public DateTime? StartDate { get; set; }  //data que irá começar a valer a meta quando for recorrente
-        public DateTime? SingleDate { get; set; }  //data limite da Meta se não for recorrente       
+        public DateTime? StartDate { get; set; }            //data que irá começar a valer a meta quando for recorrente
+        public DateTime? SingleDate { get; set; }           //data limite da Meta se não for recorrente
+        public DateTime? LastEvaluatedDate { get; set; }    //última vez que a meta foi verificada
+        public int AchievementsCount { get; set; } = 0;     //quantas vezes já foi alcançada
     }
 }

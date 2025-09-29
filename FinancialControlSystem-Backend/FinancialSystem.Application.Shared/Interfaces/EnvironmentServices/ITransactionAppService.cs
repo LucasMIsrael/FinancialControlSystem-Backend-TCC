@@ -11,5 +11,6 @@ namespace FinancialSystem.Application.Shared.Interfaces.EnvironmentServices
         Task<List<TransactionDataDto>> GetAllPlannedTransactions();
         Task<List<TransactionDataDto>> GetAllUnplannedTransactions();
         Task DeleteTransaction(Guid transactionId);
+        Task UpdateEnvironmentBalance();
     }
 }
