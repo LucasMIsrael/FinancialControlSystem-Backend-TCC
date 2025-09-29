@@ -12,14 +12,17 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
     {
         private readonly IGeneralRepository<PlannedExpensesAndProfits> _plannedTransactionsRepository;
         private readonly IGeneralRepository<UnplannedExpensesAndProfits> _unplannedTransactionsRepository;
+        private readonly IGeneralRepository<Environments> _environmentsRepository;
         private readonly TimeZoneInfo _tzBrasilia;
 
         public TransactionAppService(IAppSession appSession,
                                      IGeneralRepository<PlannedExpensesAndProfits> plannedTransactionsRepository,
-                                     IGeneralRepository<UnplannedExpensesAndProfits> unplannedTransactionsRepository) : base(appSession)
+                                     IGeneralRepository<UnplannedExpensesAndProfits> unplannedTransactionsRepository,
+                                     IGeneralRepository<Environments> environmentsRepository) : base(appSession)
         {
             _plannedTransactionsRepository = plannedTransactionsRepository;
             _unplannedTransactionsRepository = unplannedTransactionsRepository;
+            _environmentsRepository = environmentsRepository;
             _tzBrasilia = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         }
 
@@ -225,6 +228,85 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             {
                 throw new Exception(ex.Message);
             }
+        }
+        #endregion
+
+        #region UpdateEnvironmentBalance
+        public async Task UpdateEnvironmentBalance()
+        {
+            var environment = await _environmentsRepository
+                                    .FirstOrDefaultAsync(e => e.Id == EnvironmentId);
+
+            if (environment == null)
+                throw new Exception("Ambiente não encontrado.");
+
+            var today = DateTime.UtcNow.Date;
+
+            var unplanned = await _unplannedTransactionsRepository
+                                  .GetAll()
+                                  .Where(t => t.EnvironmentId == EnvironmentId &&
+                                             !t.IsDeleted)
+                                  .ToListAsync();
+
+            var planned = await _plannedTransactionsRepository
+                                .GetAll()
+                                .Where(t => t.EnvironmentId == EnvironmentId &&
+                                           !t.IsDeleted)
+                                .ToListAsync();
+
+            if (unplanned.Count == 0 && planned.Count == 0)
+                return;
+
+            foreach (var tx in unplanned)
+            {
+                if (!tx.LastProcessedDate.HasValue && tx.TransactionDate.Date <= today.Date) //nunca processada
+                {
+                    environment.TotalBalance += tx.Type == FinancialRecordTypeEnum.Profit ? tx.Amount : -tx.Amount;
+                    tx.LastProcessedDate = today;
+                    await _unplannedTransactionsRepository.UpdateAsync(tx);
+                }
+            }
+
+            foreach (var tx in planned)
+            {
+                if (tx.RecurrenceType == RecurrenceTypeEnum.None)
+                {
+                    if (tx.TransactionDate.Date <= today && !tx.LastProcessedDate.HasValue)
+                    {
+                        environment.TotalBalance += tx.Type == FinancialRecordTypeEnum.Profit ? tx.Amount : -tx.Amount;
+                        tx.LastProcessedDate = today;
+                        await _plannedTransactionsRepository.UpdateAsync(tx);
+                    }
+                }
+                else
+                {
+                    bool shouldApply = false;
+
+                    switch (tx.RecurrenceType)
+                    {
+                        case RecurrenceTypeEnum.Daily:
+                            shouldApply = !tx.LastProcessedDate.HasValue || tx.LastProcessedDate.Value.Date < today;
+                            break;
+
+                        case RecurrenceTypeEnum.Weekly:
+                            shouldApply = !tx.LastProcessedDate.HasValue || tx.LastProcessedDate.Value.Date.AddDays(7) <= today;
+                            break;
+
+                        case RecurrenceTypeEnum.Monthly:
+                            shouldApply = !tx.LastProcessedDate.HasValue || tx.LastProcessedDate.Value.Date.AddMonths(1) <= today;
+                            break;
+                    }
+
+                    if (tx.TransactionDate.Date <= today && shouldApply)
+                    {
+                        environment.TotalBalance += tx.Type == FinancialRecordTypeEnum.Profit ? tx.Amount : -tx.Amount;
+                        tx.LastProcessedDate = today;
+                        await _plannedTransactionsRepository.UpdateAsync(tx);
+                    }
+                }
+            }
+
+            await _environmentsRepository.UpdateAsync(environment);
         }
         #endregion
     }

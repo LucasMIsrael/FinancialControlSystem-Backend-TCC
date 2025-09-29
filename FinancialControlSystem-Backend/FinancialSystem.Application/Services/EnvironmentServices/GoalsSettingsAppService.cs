@@ -5,6 +5,7 @@ using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Enums;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
@@ -122,80 +123,106 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
         public async Task UpdateGoalsAchieved()
         {
             var goals = await _goalsRepository
-                              .GetAll().Include(g => g.Environment)
+                              .GetAll()
+                              .Include(g => g.Environment)
                               .Where(g => g.EnvironmentId == EnvironmentId &&
-                                          g.Status == false)
+                                         !g.IsDeleted)
                               .ToListAsync();
 
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow.Date;
 
             foreach (var goal in goals)
             {
                 bool achieved = false;
 
-                //caso seja meta recorrente
+                //meta recorrente
                 if (goal.PeriodType.HasValue && goal.StartDate.HasValue)
                 {
+                    bool isNewPeriod = false;
+
                     switch (goal.PeriodType.Value)
                     {
                         case GoalPeriodTypeEnum.Daily:
-                            if (today >= goal.StartDate.Value.Date &&
+                            isNewPeriod = !goal.LastEvaluatedDate.HasValue ||
+                                           goal.LastEvaluatedDate.Value.Date < today;
+
+                            if (isNewPeriod && today >= goal.StartDate.Value.Date &&
                                 goal.Environment.TotalBalance >= goal.Value)
                                 achieved = true;
                             break;
 
                         case GoalPeriodTypeEnum.Weekly:
                             var cal = System.Globalization.CultureInfo.CurrentCulture.Calendar;
-                            var currentWeek = cal.GetWeekOfYear(today, System.Globalization.CalendarWeekRule.FirstDay, DayOfWeek.Monday);
-                            var goalWeek = cal.GetWeekOfYear(goal.StartDate.Value, System.Globalization.CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+                            var currentWeek = cal.GetWeekOfYear(today,
+                                                                CalendarWeekRule.FirstDay,
+                                                                DayOfWeek.Monday);
 
-                            if (currentWeek == goalWeek &&
-                                today.Year == goal.StartDate.Value.Year &&
+                            var lastWeek = goal.LastEvaluatedDate.HasValue
+                                ? cal.GetWeekOfYear(goal.LastEvaluatedDate.Value, CalendarWeekRule.FirstDay, DayOfWeek.Monday)
+                                : -1;
+
+                            isNewPeriod = currentWeek != lastWeek ||
+                                          today.Year != goal.LastEvaluatedDate?.Year;
+
+                            if (isNewPeriod && today >= goal.StartDate.Value.Date &&
                                 goal.Environment.TotalBalance >= goal.Value)
                                 achieved = true;
                             break;
 
                         case GoalPeriodTypeEnum.Monthly:
-                            if (today.Month == goal.StartDate.Value.Month &&
-                                today.Year == goal.StartDate.Value.Year &&
+                            isNewPeriod = !goal.LastEvaluatedDate.HasValue ||
+                                           goal.LastEvaluatedDate.Value.Month != today.Month ||
+                                           goal.LastEvaluatedDate.Value.Year != today.Year;
+
+                            if (isNewPeriod && today >= goal.StartDate.Value.Date &&
                                 goal.Environment.TotalBalance >= goal.Value)
                                 achieved = true;
                             break;
 
                         case GoalPeriodTypeEnum.Semestral:
                             int currentSemester = (today.Month - 1) / 6 + 1;
-                            int goalSemester = (goal.StartDate.Value.Month - 1) / 6 + 1;
+                            int goalSemester = (goal.LastEvaluatedDate.HasValue ? (goal.LastEvaluatedDate.Value.Month - 1) / 6 + 1 : -1);
 
-                            if (currentSemester == goalSemester &&
-                                today.Year == goal.StartDate.Value.Year &&
+                            isNewPeriod = !goal.LastEvaluatedDate.HasValue ||
+                                           goalSemester != currentSemester ||
+                                           goal.LastEvaluatedDate.Value.Year != today.Year;
+
+                            if (isNewPeriod && today >= goal.StartDate.Value.Date &&
                                 goal.Environment.TotalBalance >= goal.Value)
                                 achieved = true;
                             break;
 
                         case GoalPeriodTypeEnum.Annual:
-                            if (today.Year == goal.StartDate.Value.Year &&
+                            isNewPeriod = !goal.LastEvaluatedDate.HasValue ||
+                                           goal.LastEvaluatedDate.Value.Year != today.Year;
+                            if (isNewPeriod && today >= goal.StartDate.Value.Date &&
                                 goal.Environment.TotalBalance >= goal.Value)
                                 achieved = true;
                             break;
                     }
+
+                    if (isNewPeriod)
+                        goal.Status = false; //reset status para o novo ciclo
                 }
-                else if (goal.SingleDate.HasValue) //caso seja meta unica
+                //meta única
+                else if (goal.SingleDate.HasValue)
                 {
-                    if (today <= goal.SingleDate.Value &&
+                    if (!goal.Status.GetValueOrDefault() &&   //ainda não concluída
+                        today <= goal.SingleDate.Value &&
                         goal.Environment.TotalBalance >= goal.Value)
                         achieved = true;
                 }
 
-                //atualiza status e contabiliza
-                if (achieved && goal.Status != true)
+                if (achieved)
                 {
                     goal.Status = true;
                     goal.Environment.TotalGoalsAchieved++;
-
+                    goal.AchievementsCount++;
                     TotalGoalsAchievedValidation(goal);
-
-                    await _goalsRepository.UpdateAsync(goal);
                 }
+
+                goal.LastEvaluatedDate = today;
+                await _goalsRepository.UpdateAsync(goal);
             }
         }
         #endregion

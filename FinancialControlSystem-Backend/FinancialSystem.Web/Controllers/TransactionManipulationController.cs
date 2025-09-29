@@ -118,5 +118,20 @@ namespace FinancialSystem.Web.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPut("update/totalBalance")]
+        [Authorize]
+        public async Task<IActionResult> TotalBalanceUpdateController()
+        {
+            try
+            {
+                await _transactionAppService.UpdateEnvironmentBalance();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
