@@ -11,6 +11,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
     public class RankingAppService : AppServiceBase, IRankingAppService
     {
         private readonly IGeneralRepository<Environments> _environmentsRepository;
+        private TimeZoneInfo _tzBrasilia = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
 
         public RankingAppService(IAppSession appSession,
                                  IGeneralRepository<Environments> environmentsRepository) : base(appSession)
@@ -28,7 +29,8 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
 
             var otherEnvironments = await _environmentsRepository
                                           .GetAll().Include(x => x.User)
-                                          .Where(x => x.Type == currentEnvironment.Type)
+                                          .Where(x => x.Type == currentEnvironment.Type &&
+                                                     !x.IsDeleted)
                                           .ToListAsync();
 
             var ranking = new List<RankingDto>();
@@ -39,7 +41,8 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 {
                     UserName = env.User?.Name ?? "Usuário desconhecido",
                     TotalGoalsAchieved = env.TotalGoalsAchieved,
-                    EnvironmentLevel = GetLevelNamePt(env.FinancialControlLevel)
+                    EnvironmentLevel = GetLevelNamePt(env.FinancialControlLevel),
+                    CreationTime = TimeZoneInfo.ConvertTime(env.CreationTime, _tzBrasilia).ToString()
                 });
             }
 
