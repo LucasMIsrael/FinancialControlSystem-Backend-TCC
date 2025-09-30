@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FinancialSystem.Application.Shared.Dtos.Environment;
 
 namespace FinancialSystem.Application.Shared.Interfaces.EnvironmentServices
 {
     public interface IRankingAppService
     {
+        Task<List<RankingDto>> GetEnvironmentsForRanking();
     }
 }
