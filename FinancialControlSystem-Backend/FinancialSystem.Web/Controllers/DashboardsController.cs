@@ -106,6 +106,11 @@ namespace FinancialSystem.Web.Controllers
         {
             try
             {
+                if (filter.IsYear && filter.PeriodValue > 10)
+                    throw new Exception("Limite máximo de até 10 anos");
+                else if (!filter.IsYear && filter.PeriodValue > 12)
+                    throw new Exception("Limite máximo de até 12 meses");
+
                 return Ok(await _dashAppService.GetProjectedBalanceEvolution(filter));
             }
             catch (Exception ex)
