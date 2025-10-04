@@ -115,6 +115,7 @@ builder.Services.AddScoped<IEnvironmentSettingsAppService, EnvironmentSettingsAp
 builder.Services.AddScoped<ITransactionAppService, TransactionAppService>();
 builder.Services.AddScoped<IGoalsSettingsAppService, GoalsSettingsAppService>();
 builder.Services.AddScoped<IRankingAppService, RankingAppService>();
+builder.Services.AddScoped<IDashboardsAppService, DashboardsAppService>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IAppSession, AppSession>();
