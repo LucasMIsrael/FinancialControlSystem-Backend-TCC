@@ -8,5 +8,6 @@ namespace FinancialSystem.Application.Shared.Interfaces.EnvironmentServices
         Task UpdateGoal(GoalDataDto input);
         Task<List<GoalDataForViewDto>> GetAllGoals();
         Task DeleteGoal(Guid goalId);
+        Task UpdateGoalsAchieved();
     }
 }

@@ -17,13 +17,16 @@ namespace FinancialSystem.Test.EnvironmentTests
             // Arrange
             var mockRepo1 = new Mock<IGeneralRepository<PlannedExpensesAndProfits>>();
             var mockRepo2 = new Mock<IGeneralRepository<UnplannedExpensesAndProfits>>();
+            var mockRepo3 = new Mock<IGeneralRepository<Environments>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.Setup(x => x.EnvironmentId)
                           .Returns(Guid.Parse("877e85aa-2ada-4e12-b0bb-b4eb9a6be61c"));
 
-            var service = new TransactionAppService(mockAppSession.Object, mockRepo1.Object, mockRepo2.Object);
+            var service = new TransactionAppService(mockAppSession.Object, 
+                                                    mockRepo1.Object, mockRepo2.Object,
+                                                    mockRepo3.Object);
 
             var dto = new TransactionDataDto
             {
@@ -48,13 +51,16 @@ namespace FinancialSystem.Test.EnvironmentTests
             // Arrange
             var mockRepo1 = new Mock<IGeneralRepository<PlannedExpensesAndProfits>>();
             var mockRepo2 = new Mock<IGeneralRepository<UnplannedExpensesAndProfits>>();
+            var mockRepo3 = new Mock<IGeneralRepository<Environments>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.Setup(x => x.EnvironmentId)
                           .Returns(Guid.Parse("877e85aa-2ada-4e12-b0bb-b4eb9a6be61c"));
 
-            var service = new TransactionAppService(mockAppSession.Object, mockRepo1.Object, mockRepo2.Object);
+            var service = new TransactionAppService(mockAppSession.Object, 
+                                                    mockRepo1.Object, mockRepo2.Object,
+                                                    mockRepo3.Object);
 
             var dto = new TransactionDataDto
             {
@@ -79,12 +85,15 @@ namespace FinancialSystem.Test.EnvironmentTests
             // Arrange
             var mockRepo1 = new Mock<IGeneralRepository<PlannedExpensesAndProfits>>();
             var mockRepo2 = new Mock<IGeneralRepository<UnplannedExpensesAndProfits>>();
+            var mockRepo3 = new Mock<IGeneralRepository<Environments>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new TransactionAppService(mockAppSession.Object, mockRepo1.Object, mockRepo2.Object);
+            var service = new TransactionAppService(mockAppSession.Object, 
+                                                    mockRepo1.Object, mockRepo2.Object, 
+                                                    mockRepo3.Object);
 
             var dto = new TransactionDataDto
             {
@@ -112,12 +121,15 @@ namespace FinancialSystem.Test.EnvironmentTests
             // Arrange
             var mockRepo1 = new Mock<IGeneralRepository<PlannedExpensesAndProfits>>();
             var mockRepo2 = new Mock<IGeneralRepository<UnplannedExpensesAndProfits>>();
+            var mockRepo3 = new Mock<IGeneralRepository<Environments>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new TransactionAppService(mockAppSession.Object, mockRepo1.Object, mockRepo2.Object);
+            var service = new TransactionAppService(mockAppSession.Object, 
+                                                    mockRepo1.Object, mockRepo2.Object, 
+                                                    mockRepo3.Object);
 
             var dto = new TransactionDataDto
             {
@@ -206,12 +218,15 @@ namespace FinancialSystem.Test.EnvironmentTests
             // Arrange
             var mockRepo1 = new Mock<IGeneralRepository<PlannedExpensesAndProfits>>();
             var mockRepo2 = new Mock<IGeneralRepository<UnplannedExpensesAndProfits>>();
+            var mockRepo3 = new Mock<IGeneralRepository<Environments>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new TransactionAppService(mockAppSession.Object, mockRepo1.Object, mockRepo2.Object);
+            var service = new TransactionAppService(mockAppSession.Object, 
+                                                    mockRepo1.Object, mockRepo2.Object,
+                                                    mockRepo3.Object);
 
             var id = Guid.NewGuid();
             mockRepo1.Setup(r => r.GetByIdAsync(id))
@@ -230,12 +245,15 @@ namespace FinancialSystem.Test.EnvironmentTests
             // Arrange
             var mockRepo1 = new Mock<IGeneralRepository<PlannedExpensesAndProfits>>();
             var mockRepo2 = new Mock<IGeneralRepository<UnplannedExpensesAndProfits>>();
+            var mockRepo3 = new Mock<IGeneralRepository<Environments>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new TransactionAppService(mockAppSession.Object, mockRepo1.Object, mockRepo2.Object);
+            var service = new TransactionAppService(mockAppSession.Object, 
+                                                    mockRepo1.Object, mockRepo2.Object,
+                                                    mockRepo3.Object);
 
             var id = Guid.NewGuid();
             mockRepo1.Setup(r => r.GetByIdAsync(id))

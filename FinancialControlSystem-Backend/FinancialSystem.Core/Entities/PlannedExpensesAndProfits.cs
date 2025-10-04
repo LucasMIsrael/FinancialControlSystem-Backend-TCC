@@ -23,5 +23,6 @@ namespace FinancialSystem.Core.Entities
         public string Description { get; set; }
         public double Amount { get; set; }
         public DateTime TransactionDate { get; set; }  //data que a transação irá ocorrer se for planejada
+        public DateTime? LastProcessedDate { get; set; }  //data da ultima vez que entrou no cálculo
     }
 }

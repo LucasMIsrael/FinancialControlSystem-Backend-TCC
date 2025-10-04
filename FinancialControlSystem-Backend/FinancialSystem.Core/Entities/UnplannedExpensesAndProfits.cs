@@ -22,5 +22,6 @@ namespace FinancialSystem.Core.Entities
         public string Description { get; set; }
         public double Amount { get; set; }
         public DateTime TransactionDate { get; set; }  //data que a transação ocorreu
+        public DateTime? LastProcessedDate { get; set; }  // data da última vez que entrou no cálculo
     }
 }
