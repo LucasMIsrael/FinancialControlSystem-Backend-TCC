@@ -189,7 +189,8 @@ namespace FinancialSystem.Test.UserTests
         public async Task ShouldUpdateUserInformationsSuccessfully()
         {
             // arrange
-            var existingUser = new Users { Id = 123, Name = "Old Name", Email = "old@test.com", Password = "old" };
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword("oldpass");
+            var existingUser = new Users { Id = 123, Name = "Old Name", Email = "old@test.com", Password = hashedPassword };
 
             var mockRepo = new Mock<IGeneralRepository<Users>>();
             mockRepo.Setup(r => r.FirstOrDefaultAsync(It.IsAny<Expression<Func<Users, bool>>>()))
@@ -204,12 +205,13 @@ namespace FinancialSystem.Test.UserTests
 
             var service = new UserSettingsAppService(mockAppSession.Object, mockRepo.Object, mockJwtSettings.Object);
 
-            var input = new UserDataDto
+            var input = new UserDataForUpdateDto
             {
                 Id = 123,
                 Name = "New Name",
                 Email = "new@test.com",
-                Password = "newpass"
+                OldPassword = "oldpass",
+                NewPassword = "newpass"
             };
 
             // act
@@ -239,12 +241,13 @@ namespace FinancialSystem.Test.UserTests
 
             var service = new UserSettingsAppService(mockAppSession.Object, mockRepo.Object, mockJwtSettings.Object);
 
-            var input = new UserDataDto
+            var input = new UserDataForUpdateDto
             {
                 Id = 123,
                 Name = "Any",
                 Email = "any@test.com",
-                Password = "anypass"
+                OldPassword = "oldpass",
+                NewPassword = "newpass"
             };
 
             // act & assert

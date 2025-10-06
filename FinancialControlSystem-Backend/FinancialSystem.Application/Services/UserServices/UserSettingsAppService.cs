@@ -103,7 +103,7 @@ namespace FinancialSystem.Application.Services.UserServices
         #endregion
 
         #region UpdateUserInformations
-        public async Task UpdateUserInformations(UserDataDto input)
+        public async Task UpdateUserInformations(UserDataForUpdateDto input)
         {
             var user = await _usersRepository.FirstOrDefaultAsync(x => x.Id == input.Id);
 
@@ -112,9 +112,17 @@ namespace FinancialSystem.Application.Services.UserServices
 
             user.Name = input.Name;
             user.Email = input.Email;
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(input.Password);
 
-            user.Password = hashedPassword;
+            if (!string.IsNullOrEmpty(input.OldPassword) &&
+                !string.IsNullOrEmpty(input.NewPassword))
+            {
+                if (!BCrypt.Net.BCrypt.Verify(input.OldPassword, user.Password))
+                    throw new Exception("Senha atual inválida");
+
+                var hashedNewPassword = BCrypt.Net.BCrypt.HashPassword(input.NewPassword);
+
+                user.Password = hashedNewPassword;
+            }
 
             await _usersRepository.UpdateAsync(user);
         }
