@@ -25,6 +25,12 @@ namespace FinancialSystem.Web
         {
             get
             {
+                var httpContext = _httpContextAccessor.HttpContext;
+                var headerValue = httpContext?.Request.Headers["X-Environment-Id"].FirstOrDefault();
+
+                if (Guid.TryParse(headerValue, out var envId))
+                    return envId;
+
                 var value = _httpContextAccessor.HttpContext?.Session.GetString("EnvironmentId");
                 return string.IsNullOrEmpty(value) ? null : Guid.Parse(value);
             }

@@ -90,7 +90,8 @@ namespace FinancialSystem.Web.Controllers
         }
 
         [HttpPost("set/environment")]
-        public IActionResult SetEnvironment([FromBody] Guid environmentId)
+        [Authorize]
+        public IActionResult SetEnvironment(Guid environmentId)
         {
             HttpContext.Session.SetString("EnvironmentId", environmentId.ToString());
             return Ok();

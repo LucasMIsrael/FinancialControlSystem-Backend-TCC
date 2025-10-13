@@ -31,9 +31,14 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: myAllowSpecificOrigins,
                       builder =>
                       {
-                          builder.AllowAnyOrigin()
+                          builder.WithOrigins("http://localhost:4200")
+                                 .AllowAnyHeader()
+                                 .AllowAnyMethod()
+                                 .AllowCredentials();
+
+                          /*builder.AllowAnyOrigin()
                           .AllowAnyHeader()
-                          .AllowAnyMethod();
+                          .AllowAnyMethod();*/
                       });
 });
 
@@ -137,6 +142,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "FinancialSystem.Web - Api"));
     app.UseHsts();
 }
+
 app.UseSession();
 
 app.UseRouting();
