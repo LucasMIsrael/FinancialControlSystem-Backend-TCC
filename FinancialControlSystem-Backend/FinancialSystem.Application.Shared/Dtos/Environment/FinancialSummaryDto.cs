@@ -62,4 +62,9 @@ namespace FinancialSystem.Application.Shared.Dtos.Environment
         public string PeriodLabel { get; set; }
         public double ProjectedBalance { get; set; }
     }
+
+    public class EditTotalBalanceDto
+    {
+        public double Value { get; set; }
+    }
 }

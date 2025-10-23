@@ -74,8 +74,11 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
         #region GetBalanceOverTime
         public async Task<List<BalanceOverTimeDto>> GetBalanceOverTime(FilterForBalanceOverTimeDto input)
         {
-            input.StartDate = TimeZoneInfo.ConvertTimeToUtc(input.StartDate, _tzBrasilia);
-            input.EndDate = TimeZoneInfo.ConvertTimeToUtc(input.EndDate, _tzBrasilia);
+            if (input.StartDate.Hour != 03 && input.EndDate.Hour != 03) 
+            {
+                input.StartDate = TimeZoneInfo.ConvertTimeToUtc(input.StartDate, _tzBrasilia);
+                input.EndDate = TimeZoneInfo.ConvertTimeToUtc(input.EndDate, _tzBrasilia);
+            }
 
             var environment = await _environmentsRepository.GetByIdAsync((Guid)EnvironmentId);
             double runningBalance = environment?.TotalBalance ?? 0;
@@ -83,17 +86,17 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             var unplanned = await _unplannedTransactionsRepository
                                   .GetAll()
                                   .Where(x => x.EnvironmentId == EnvironmentId &&
-                                             !x.IsDeleted &&
-                                              x.TransactionDate >= input.StartDate &&
-                                              x.TransactionDate <= input.EndDate)
+                                             !x.IsDeleted /*&&
+                                              x.TransactionDate.Date >= input.StartDate.Date &&
+                                              x.TransactionDate.Date <= input.EndDate.Date*/)
                                   .ToListAsync();
 
             var planned = await _plannedTransactionsRepository
                                 .GetAll()
                                 .Where(x => x.EnvironmentId == EnvironmentId &&
-                                           !x.IsDeleted &&
+                                           !x.IsDeleted /*&&
                                             x.TransactionDate >= input.StartDate &&
-                                            x.TransactionDate <= input.EndDate)
+                                            x.TransactionDate <= input.EndDate*/)
                                 .ToListAsync();
 
             //juntar e ordenar decrescente, do mais recente para o mais antigo
@@ -117,6 +120,9 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                     Balance = runningBalance
                 });
             }
+
+            result = result.Where(x => x.Date.Date >= input.StartDate.Date &&
+                                       x.Date.Date <= input.EndDate.Date).ToList();
 
             return result.OrderBy(x => x.Date).ToList();
         }
@@ -203,7 +209,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
         }
         #endregion
 
-        //as 4 metas recorrentes mais alcançadas
+        //as 10 metas recorrentes mais alcançadas
         #region GetTheFourMostAchievedRecurringGoals
         public async Task<List<TopRecurringGoalsAchievedDto>> GetTheFourMostAchievedRecurringGoals()
         {
@@ -214,7 +220,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                                           x.PeriodType != null &&
                                           x.PeriodType != GoalPeriodTypeEnum.None &&
                                           x.StartDate <= DateTime.UtcNow.Date)
-                              .OrderByDescending(x => x.AchievementsCount).Take(4)
+                              .OrderByDescending(x => x.AchievementsCount).Take(10)
                               .ToListAsync();
 
             if (!goals.Any())
@@ -286,6 +292,12 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
 
             if (input.IsYear)
             {
+                projection.Add(new ProjectedBalanceDto
+                {
+                    PeriodLabel = startDate.Year.ToString() + " (Saldo Atual)",
+                    ProjectedBalance = Math.Round(runningBalance, 2)
+                });
+
                 for (int i = 0; i < input.PeriodValue; i++)
                 {
                     DateTime currentEnd = startDate.AddYears(1);
@@ -303,6 +315,12 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             }
             else
             {
+                projection.Add(new ProjectedBalanceDto
+                {
+                    PeriodLabel = $"{startDate:MMM/yyyy} (Saldo Atual)",
+                    ProjectedBalance = Math.Round(runningBalance, 2)
+                });
+
                 for (int i = 0; i < input.PeriodValue; i++)
                 {
                     DateTime currentEnd = startDate.AddMonths(1);
@@ -366,6 +384,18 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 default:
                     return 0;
             }
+        }
+        #endregion
+
+        #region EditTotalBalance
+        public async Task EditTotalBalance(double value)
+        {
+            var environment = await _environmentsRepository.FirstOrDefaultAsync(x => x.Id == EnvironmentId);
+
+            if (environment == null) throw new Exception("Ambiente não encontrado");
+
+            environment.TotalBalance = value;
+            await _environmentsRepository.UpdateAsync(environment);
         }
         #endregion
     }
