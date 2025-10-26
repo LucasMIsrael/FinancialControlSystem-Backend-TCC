@@ -4,6 +4,7 @@ using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Dynamic.Core;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
@@ -84,7 +85,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             var existingEnvironments = await _environmentsRepository.GetAll()
                                                                     .Where(x => x.UserID == (long)UserId &&
                                                                                !x.IsDeleted)
-                                                                    .ToListAsync();
+                                                                    .OrderBy(x => x.CreationTime).ToListAsync();
             if (existingEnvironments.Count == 0)
                 return new List<EnvironmentDataDto>();
 

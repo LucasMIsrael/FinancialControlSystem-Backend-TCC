@@ -42,7 +42,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                     UserName = env.User?.Name ?? "Usuário desconhecido",
                     TotalGoalsAchieved = env.TotalGoalsAchieved,
                     EnvironmentLevel = GetLevelNamePt(env.FinancialControlLevel),
-                    CreationTime = TimeZoneInfo.ConvertTime(env.CreationTime, _tzBrasilia).ToString()
+                    CreationTime = TimeZoneInfo.ConvertTime(env.CreationTime, _tzBrasilia).ToShortDateString()
                 });
             }
 
@@ -64,7 +64,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 FinancialControlLevelEnum.Advanced => "Avançado",
                 FinancialControlLevelEnum.Expert => "Especialista",
                 FinancialControlLevelEnum.Master => "Mestre",
-                FinancialControlLevelEnum.FinancialController => "Controlador Financeiro",
+                FinancialControlLevelEnum.FinancialController => "Controlador",
                 _ => string.Empty
             };
         }

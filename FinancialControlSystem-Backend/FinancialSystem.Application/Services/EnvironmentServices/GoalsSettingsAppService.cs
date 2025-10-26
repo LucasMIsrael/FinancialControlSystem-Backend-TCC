@@ -95,10 +95,10 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                     Status = goals.Status,
                     Value = goals.Value,
                     SingleDate = goals.SingleDate.HasValue ?
-                                 goals.SingleDate.Value.AddHours(-3) :
+                                 goals.SingleDate.Value/*.AddHours(-3)*/ :
                                  null,
                     StartDate = goals.StartDate.HasValue ?
-                                goals.StartDate.Value.AddHours(-3) :
+                                goals.StartDate.Value/*.AddHours(-3)*/ :
                                 null
                 });
             });
