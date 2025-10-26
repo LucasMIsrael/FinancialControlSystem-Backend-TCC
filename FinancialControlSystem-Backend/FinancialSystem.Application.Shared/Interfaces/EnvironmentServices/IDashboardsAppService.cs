@@ -11,5 +11,6 @@ namespace FinancialSystem.Application.Shared.Interfaces.EnvironmentServices
         Task<List<BalanceOverTimeDto>> GetBalanceOverTime(FilterForBalanceOverTimeDto input);
         Task<List<AchievementsDistributionDto>> GetAchievementDistributionByPeriod();
         Task<List<ProjectedBalanceDto>> GetProjectedBalanceEvolution(FiltersForBalanceProjectionDto input);
+        Task EditTotalBalance(double value);
     }
 }

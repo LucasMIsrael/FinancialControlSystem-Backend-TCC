@@ -32,7 +32,7 @@ namespace FinancialSystem.Web.Controllers
 
         [HttpPut("update/user")]
         [Authorize]
-        public async Task<IActionResult> UserUpdateController(UserDataDto input)
+        public async Task<IActionResult> UserUpdateController(UserDataForUpdateDto input)
         {
             try
             {

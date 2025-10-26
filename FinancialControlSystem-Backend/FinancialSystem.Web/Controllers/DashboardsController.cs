@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FinancialSystem.Web.Controllers
 {
-    [Route("api/dashboards")]
+    [Route("api/dashboard")]
     [ApiController]
     public class DashboardsController : Controller
     {
@@ -112,6 +112,21 @@ namespace FinancialSystem.Web.Controllers
                     throw new Exception("Limite máximo de até 12 meses");
 
                 return Ok(await _dashAppService.GetProjectedBalanceEvolution(filter));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("edit/envBalance")]
+        [Authorize]
+        public async Task<IActionResult> UpdateEnvironmentTotalBalance([FromBody] EditTotalBalanceDto value)
+        {
+            try
+            {
+                await _dashAppService.EditTotalBalance(value.Value);
+                return Ok();
             }
             catch (Exception ex)
             {
