@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FinancialSystem.Application.Services.UserServices
 {
@@ -36,6 +37,15 @@ namespace FinancialSystem.Application.Services.UserServices
             if (existingUser != null)
                 throw new Exception("Já existe um usuário cadastrado com este email");
 
+            input.Email = Sanitize(input.Email);
+            input.Name = Sanitize(input.Name);
+            input.Password = Sanitize(input.Password);
+
+            if (string.IsNullOrEmpty(input.Email) ||
+                string.IsNullOrEmpty(input.Name) ||
+                string.IsNullOrEmpty(input.Password))
+                throw new Exception("Campo obrigatório com valor inválido!");
+
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(input.Password);
 
             var userData = new Users
@@ -54,10 +64,15 @@ namespace FinancialSystem.Application.Services.UserServices
         {
             try
             {
-                var user = await _usersRepository.FirstOrDefaultAsync(x => x.Email == input.Email &&
-                                                                          !x.IsDeleted);
+                var email = Sanitize(input.Email);
+                var password = Sanitize(input.Password);
 
-                if (user == null || !BCrypt.Net.BCrypt.Verify(input.Password, user.Password))
+                if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+                    throw new Exception("Email e senha são obrigatórios.");
+
+                var user = await _usersRepository.FirstOrDefaultAsync(x => x.Email == email && !x.IsDeleted);
+
+                if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
                     throw new Exception("Email ou senha inválidos.");
 
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -110,8 +125,8 @@ namespace FinancialSystem.Application.Services.UserServices
             if (user == null)
                 throw new Exception("Erro ao consultar usuário");
 
-            user.Name = input.Name;
-            user.Email = input.Email;
+            user.Name = Sanitize(input.Name);
+            user.Email = Sanitize(input.Email);
 
             if (!string.IsNullOrEmpty(input.OldPassword) &&
                 !string.IsNullOrEmpty(input.NewPassword))
@@ -125,6 +140,19 @@ namespace FinancialSystem.Application.Services.UserServices
             }
 
             await _usersRepository.UpdateAsync(user);
+        }
+        #endregion
+
+        #region Sanitize
+        private string Sanitize(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            input = Regex.Replace(input, @"<.*?>", string.Empty);
+            input = Regex.Replace(input, @"[()<>""'%;+]", string.Empty);
+
+            return input.Trim();
         }
         #endregion
     }

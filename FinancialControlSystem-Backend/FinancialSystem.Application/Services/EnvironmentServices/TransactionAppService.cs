@@ -5,6 +5,7 @@ using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Enums;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
@@ -34,7 +35,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 var transaction = new PlannedExpensesAndProfits
                 {
                     Amount = input.Amount,
-                    Description = input.Description,
+                    Description = Sanitize(input.Description),
                     EnvironmentId = (Guid)EnvironmentId,
                     Id = Guid.NewGuid(),
                     Type = (FinancialRecordTypeEnum)input.Type,
@@ -59,7 +60,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 var unplannedTransaction = new UnplannedExpensesAndProfits
                 {
                     Amount = input.Amount,
-                    Description = input.Description,
+                    Description = Sanitize(input.Description),
                     EnvironmentId = (Guid)EnvironmentId,
                     Id = Guid.NewGuid(),
                     Type = (FinancialRecordTypeEnum)input.Type,
@@ -90,7 +91,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
 
                 plannedTransaction.Amount = input.Amount;
                 plannedTransaction.RecurrenceType = (RecurrenceTypeEnum)input.RecurrenceType;
-                plannedTransaction.Description = input.Description;
+                plannedTransaction.Description = Sanitize(input.Description);
                 plannedTransaction.TransactionDate = TimeZoneInfo.ConvertTimeToUtc(input.TransactionDate, _tzBrasilia);
                 plannedTransaction.Type = (FinancialRecordTypeEnum)input.Type;
 
@@ -117,7 +118,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                     throw new Exception("Transação não encontrada!");
 
                 unplannedTransaction.Amount = input.Amount;
-                unplannedTransaction.Description = input.Description;
+                unplannedTransaction.Description = Sanitize(input.Description);
                 unplannedTransaction.TransactionDate = TimeZoneInfo.ConvertTimeToUtc(input.TransactionDate, _tzBrasilia);
                 unplannedTransaction.Type = (FinancialRecordTypeEnum)input.Type;
 
@@ -307,6 +308,19 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             }
 
             await _environmentsRepository.UpdateAsync(environment);
+        }
+        #endregion
+
+        #region Sanitize
+        private string Sanitize(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            input = Regex.Replace(input, @"<.*?>", string.Empty);
+            input = Regex.Replace(input, @"[()<>""'%;+]", string.Empty);
+
+            return input.Trim();
         }
         #endregion
     }

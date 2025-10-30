@@ -5,6 +5,7 @@ using FinancialSystem.Core.Entities;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Dynamic.Core;
+using System.Text.RegularExpressions;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
@@ -25,9 +26,9 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             {
                 var newEnvironment = new Environments
                 {
-                    Description = input.Description,
+                    Description = Sanitize(input.Description),
                     Id = Guid.NewGuid(),
-                    Name = input.Name,
+                    Name = Sanitize(input.Name),
                     Type = input.Type,
                     UserID = (long)UserId
                 };
@@ -54,8 +55,8 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 if (existingEnvironment == null)
                     throw new Exception("Ambiente não encontrado!");
 
-                existingEnvironment.Description = input.Description;
-                existingEnvironment.Name = input.Name;
+                existingEnvironment.Description = Sanitize(input.Description);
+                existingEnvironment.Name = Sanitize(input.Name);
                 existingEnvironment.Type = input.Type;
 
                 await _environmentsRepository.UpdateAsync(existingEnvironment);
@@ -121,6 +122,19 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 Name = environment.Name,
                 Type = environment.Type
             };
+        }
+        #endregion
+
+        #region Sanitize
+        private string Sanitize(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            input = Regex.Replace(input, @"<.*?>", string.Empty);
+            input = Regex.Replace(input, @"[()<>""'%;+]", string.Empty);
+
+            return input.Trim();
         }
         #endregion
     }

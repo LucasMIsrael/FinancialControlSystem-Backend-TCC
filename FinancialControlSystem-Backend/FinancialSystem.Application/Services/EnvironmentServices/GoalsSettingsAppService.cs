@@ -6,6 +6,7 @@ using FinancialSystem.Core.Enums;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
@@ -34,7 +35,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 Id = Guid.NewGuid(),
                 EnvironmentId = (Guid)EnvironmentId,
                 GoalNumber = (lastGoalNumber == 0 ? 1 : lastGoalNumber + 1),
-                Description = input.Description,
+                Description = Sanitize(input.Description),
                 PeriodType = input.PeriodType,
                 Value = input.Value,
                 Status = false,
@@ -58,7 +59,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             if (goal == null)
                 throw new Exception("Meta não encontrada");
 
-            goal.Description = input.Description;
+            goal.Description = Sanitize(input.Description);
             goal.SingleDate = input.SingleDate.HasValue ?
                               TimeZoneInfo.ConvertTimeToUtc(input.SingleDate.Value, _tzBrasilia) :
                               null;
@@ -254,6 +255,19 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
 
             if (goal.Environment.TotalGoalsAchieved > 60)
                 goal.Environment.FinancialControlLevel = FinancialControlLevelEnum.FinancialController;
+        }
+        #endregion
+
+        #region Sanitize
+        private string Sanitize(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            input = Regex.Replace(input, @"<.*?>", string.Empty);
+            input = Regex.Replace(input, @"[()<>""'%;+]", string.Empty);
+
+            return input.Trim();
         }
         #endregion
     }
