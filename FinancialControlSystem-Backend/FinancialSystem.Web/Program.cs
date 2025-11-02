@@ -94,6 +94,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
 builder.Services.AddAuthentication(options =>
 {

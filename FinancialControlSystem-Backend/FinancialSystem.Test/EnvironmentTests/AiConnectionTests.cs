@@ -1,7 +1,9 @@
 ﻿using FinancialSystem.Application.Services.EnvironmentServices;
 using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Core.Entities;
+using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using System.Net;
@@ -12,26 +14,34 @@ namespace FinancialSystem.Test.EnvironmentTests
     {
         private DashboardsAppService CreateService(HttpResponseMessage fakeResponse)
         {
+            // Simula HttpClient
             var mockHandler = new Mock<HttpMessageHandler>();
 
             mockHandler.Protected()
                        .Setup<Task<HttpResponseMessage>>(
-                           "SendAsync",
-                            ItExpr.IsAny<HttpRequestMessage>(),
-                            ItExpr.IsAny<CancellationToken>()
+                             "SendAsync",
+                              ItExpr.IsAny<HttpRequestMessage>(),
+                              ItExpr.IsAny<CancellationToken>()
                        )
                        .ReturnsAsync(fakeResponse);
 
             var httpClient = new HttpClient(mockHandler.Object);
 
+            // Mock da sessão
             var mockSession = new Mock<IAppSession>();
             mockSession.Setup(x => x.UserId).Returns(123);
             mockSession.Setup(x => x.EnvironmentId).Returns(Guid.NewGuid());
 
+            // Mock dos repositórios
             var envRepo = new Mock<IGeneralRepository<Environments>>();
             var goalsRepo = new Mock<IGeneralRepository<Goals>>();
             var plannedRepo = new Mock<IGeneralRepository<PlannedExpensesAndProfits>>();
             var unplannedRepo = new Mock<IGeneralRepository<UnplannedExpensesAndProfits>>();
+
+            // Mock das configurações contendo a KEY
+            var apiSettings = new ApiSettings { Key = "TEST_API_KEY" };
+            var mockOptions = new Mock<IOptions<ApiSettings>>();
+            mockOptions.Setup(o => o.Value).Returns(apiSettings);
 
             return new DashboardsAppService(
                 mockSession.Object,
@@ -39,6 +49,7 @@ namespace FinancialSystem.Test.EnvironmentTests
                 goalsRepo.Object,
                 plannedRepo.Object,
                 unplannedRepo.Object,
+                mockOptions.Object,
                 httpClient
             );
         }
@@ -101,12 +112,13 @@ namespace FinancialSystem.Test.EnvironmentTests
 
             handlerMock.Protected()
                        .Setup<Task<HttpResponseMessage>>(
-                             "SendAsync",
-                              ItExpr.Is<HttpRequestMessage>(req =>
-                                                            req.Method == HttpMethod.Post &&
-                                                            req.RequestUri.ToString().Contains("gemini-2.5-flash-preview")
-                              ),
-                              ItExpr.IsAny<CancellationToken>()
+                           "SendAsync",
+                           ItExpr.Is<HttpRequestMessage>(req =>
+                               req.Method == HttpMethod.Post &&
+                               req.RequestUri.ToString()
+                                             .Contains("gemini-2.5-flash-preview-09-2025:generateContent?key=TEST_API_KEY")
+                           ),
+                           ItExpr.IsAny<CancellationToken>()
                        )
                        .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
                        {
@@ -131,12 +143,16 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockSession.Setup(x => x.UserId).Returns(123);
             mockSession.Setup(x => x.EnvironmentId).Returns(Guid.NewGuid());
 
+            var mockOptions = new Mock<IOptions<ApiSettings>>();
+            mockOptions.Setup(o => o.Value).Returns(new ApiSettings { Key = "TEST_API_KEY" });
+
             var service = new DashboardsAppService(
                 mockSession.Object,
                 new Mock<IGeneralRepository<Environments>>().Object,
                 new Mock<IGeneralRepository<Goals>>().Object,
                 new Mock<IGeneralRepository<PlannedExpensesAndProfits>>().Object,
                 new Mock<IGeneralRepository<UnplannedExpensesAndProfits>>().Object,
+                mockOptions.Object,
                 httpClient
             );
 
