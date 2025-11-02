@@ -133,5 +133,20 @@ namespace FinancialSystem.Web.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("ai/communicate")]
+        [Authorize]
+        public async Task<IActionResult> CommunicationWithAI([FromQuery] string prompt)
+        {
+            try
+            {
+                string response = await _dashAppService.GeminiConnection(prompt);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

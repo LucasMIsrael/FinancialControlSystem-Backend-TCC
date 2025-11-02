@@ -12,5 +12,6 @@ namespace FinancialSystem.Application.Shared.Interfaces.EnvironmentServices
         Task<List<AchievementsDistributionDto>> GetAchievementDistributionByPeriod();
         Task<List<ProjectedBalanceDto>> GetProjectedBalanceEvolution(FiltersForBalanceProjectionDto input);
         Task EditTotalBalance(double value);
+        Task<string> GeminiConnection(string prompt);
     }
 }
