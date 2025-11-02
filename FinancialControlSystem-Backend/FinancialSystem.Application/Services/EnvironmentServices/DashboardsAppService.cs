@@ -3,8 +3,11 @@ using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Enums;
+using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Net.Http.Json;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
 {
@@ -15,17 +18,23 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
         private readonly IGeneralRepository<Goals> _goalsRepository;
         private readonly IGeneralRepository<PlannedExpensesAndProfits> _plannedTransactionsRepository;
         private readonly IGeneralRepository<UnplannedExpensesAndProfits> _unplannedTransactionsRepository;
+        private readonly ApiSettings _apiSettings;
+        private readonly HttpClient _httpClient;
 
         public DashboardsAppService(IAppSession appSession,
                                     IGeneralRepository<Environments> environmentsRepository,
                                     IGeneralRepository<Goals> goalsRepository,
                                     IGeneralRepository<PlannedExpensesAndProfits> plannedTransactionsRepository,
-                                    IGeneralRepository<UnplannedExpensesAndProfits> unplannedTransactionsRepository) : base(appSession)
+                                    IGeneralRepository<UnplannedExpensesAndProfits> unplannedTransactionsRepository,
+                                    IOptions<ApiSettings> apiOptions,
+                                    HttpClient httpClient) : base(appSession)
         {
             _environmentsRepository = environmentsRepository;
             _goalsRepository = goalsRepository;
             _plannedTransactionsRepository = plannedTransactionsRepository;
             _unplannedTransactionsRepository = unplannedTransactionsRepository;
+            _httpClient = httpClient;
+            _apiSettings = apiOptions.Value;
         }
 
         //resumo financeiro
@@ -74,7 +83,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
         #region GetBalanceOverTime
         public async Task<List<BalanceOverTimeDto>> GetBalanceOverTime(FilterForBalanceOverTimeDto input)
         {
-            if (input.StartDate.Hour != 03 && input.EndDate.Hour != 03) 
+            if (input.StartDate.Hour != 03 && input.EndDate.Hour != 03)
             {
                 input.StartDate = TimeZoneInfo.ConvertTimeToUtc(input.StartDate, _tzBrasilia);
                 input.EndDate = TimeZoneInfo.ConvertTimeToUtc(input.EndDate, _tzBrasilia);
@@ -396,6 +405,44 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
 
             environment.TotalBalance = value;
             await _environmentsRepository.UpdateAsync(environment);
+        }
+        #endregion
+
+        #region GeminiConnection
+        public async Task<string> GeminiConnection(string pergunta)
+        {
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/" +
+                      $"gemini-2.5-flash-preview-09-2025:generateContent?key={_apiSettings.Key}";
+
+            var requestObj = new
+            {
+                contents = new[]
+                {
+                    new
+                    {
+                        parts = new[]
+                        {
+                            new { text = pergunta }
+                        }
+                    }
+                }
+            };
+
+            var response = await _httpClient.PostAsJsonAsync(url, requestObj);
+            var json = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Erro da API Gemini: {json}");
+
+            var result = System.Text.Json.JsonSerializer.Deserialize<GeminiResponse>(
+                json,
+                new System.Text.Json.JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }
+            );
+
+            return result.candidates[0].content.parts[0].text;
         }
         #endregion
     }

@@ -25,6 +25,8 @@ var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var configuration = builder.Configuration;
 var environment = builder.Environment;
 
+builder.Services.AddHttpClient();
+
 // CORS
 builder.Services.AddCors(options =>
 {
@@ -56,7 +58,6 @@ builder.Services.AddSwaggerGen(swagger =>
         Title = $"FinancialSystem.Web API - {envName}"
     });
 
-    // Configuração do JWT no Swagger
     swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -93,6 +94,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
 builder.Services.AddAuthentication(options =>
 {
