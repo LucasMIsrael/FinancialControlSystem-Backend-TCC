@@ -93,7 +93,7 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
             var dataProperty = typeof(TEntity).GetProperty("LastModificationTime");
             if (dataProperty != null)
             {
-                dataProperty.SetValue(entity, DateTime.UtcNow);
+                dataProperty.SetValue(entity, DateTime.UtcNow.AddHours(-3));
             }
 
             _dbSet.Update(entity);
@@ -123,7 +123,7 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
                 var dataProperty = typeof(TEntity).GetProperty("DeletionTime");
 
                 if (dataProperty != null)
-                    dataProperty.SetValue(entity, DateTime.UtcNow);
+                    dataProperty.SetValue(entity, DateTime.UtcNow.AddHours(-3));
 
                 _dbSet.Update(entity);
             }
@@ -172,7 +172,7 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
             var dataProperty = typeof(TEntity).GetProperty("LastModificationTime");
             if (dataProperty != null)
             {
-                dataProperty.SetValue(entity, DateTime.UtcNow);
+                dataProperty.SetValue(entity, DateTime.UtcNow.AddHours(-3));
             }
 
             _dbSet.Update(entity);
@@ -202,7 +202,7 @@ namespace FinancialSystem.EntityFrameworkCore.Repositories
                 var dataProperty = typeof(TEntity).GetProperty("DeletionTime");
 
                 if (dataProperty != null)
-                    dataProperty.SetValue(entity, DateTime.UtcNow);
+                    dataProperty.SetValue(entity, DateTime.UtcNow.AddHours(-3));
 
                 _dbSet.Update(entity);
             }
