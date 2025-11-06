@@ -36,8 +36,9 @@ jobs:
           dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
       # 2. Publicação CRUCIAL: Adiciona as flags Self-Contained
+      # 2. Publicação CRUCIAL: Adiciona as flags Self-Contained
       - name: dotnet publish (Self-Contained)
-        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o "${{env.DOTNET_ROOT}}/myapp" --self-contained true -r ${{ env.RUNTIME_IDENTIFIER }} /p:UseAppHost=false
+        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o "${{env.DOTNET_ROOT}}/myapp" --self-contained true -r ${{ env.RUNTIME_IDENTIFIER }}
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -73,3 +74,4 @@ jobs:
           app-name: 'finvision-backend'
           slot-name: 'Production'
           package: . # Aponta para a pasta onde o artefato foi baixado
+
