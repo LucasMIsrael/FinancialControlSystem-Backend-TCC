@@ -1,14 +1,20 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - finvision-backend
+name: Build and deploy ASP.Net Core Self-Contained to Azure Web App - finvision-backend
 
 on:
   push:
     branches:
-      - Refact
+      - Refact # Gatilho para a branch de testes
   workflow_dispatch:
 
+env:
+  # Definindo o caminho do projeto Web para simplificar o build
+  PROJECT_PATH: FinancialControlSystem-Backend/FinancialSystem.Web/FinancialSystem.Web.csproj
+  # O App Service é Windows, então usamos win-x64
+  RUNTIME_IDENTIFIER: win-x64
+  
 jobs:
   build:
     runs-on: windows-latest
@@ -23,11 +29,15 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-      - name: Build with dotnet
-        run: dotnet build --configuration Release
+      # 1. Restaura e Compila (usando o caminho completo)
+      - name: Restore and Build
+        run: |
+          dotnet restore ${{ env.PROJECT_PATH }}
+          dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+      # 2. Publicação CRUCIAL: Adiciona as flags Self-Contained
+      - name: dotnet publish (Self-Contained)
+        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o "${{env.DOTNET_ROOT}}/myapp" --self-contained true -r ${{ env.RUNTIME_IDENTIFIER }} /p:UseAppHost=false
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -47,7 +57,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+          
+      # O Azure Login e o Deploy-to-WebApp estão corretos com as secrets
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -61,5 +72,4 @@ jobs:
         with:
           app-name: 'finvision-backend'
           slot-name: 'Production'
-          package: .
-          
+          package: . # Aponta para a pasta onde o artefato foi baixado
