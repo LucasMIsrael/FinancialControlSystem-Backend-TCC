@@ -134,13 +134,13 @@ namespace FinancialSystem.Web.Controllers
             }
         }
 
-        [HttpGet("ai/communicate")]
+        [HttpPost("ai/communicate")]
         [Authorize]
-        public async Task<IActionResult> CommunicationWithAI([FromQuery] string prompt)
+        public async Task<IActionResult> CommunicationWithAI([FromBody] PromptRequestDto request)
         {
             try
             {
-                string response = await _dashAppService.GeminiConnection(prompt);
+                string response = await _dashAppService.GeminiConnection(request.Prompt);
                 return Ok(response);
             }
             catch (Exception ex)
