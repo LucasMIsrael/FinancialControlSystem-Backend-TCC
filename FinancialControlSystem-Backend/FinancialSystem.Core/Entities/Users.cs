@@ -10,7 +10,7 @@ namespace FinancialSystem.Core.Entities
     {
         public Users()
         {
-            CreationTime = DateTime.UtcNow;
+            CreationTime = DateTime.UtcNow.AddHours(-3);
         }
 
         public string Name { get; set; }

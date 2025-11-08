@@ -1,0 +1,76 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy ASP.Net Core Self-Contained to Azure Web App - finvision-backend
+
+on:
+  push:
+    branches:
+      - Refact 
+  workflow_dispatch:
+
+env:
+  
+  PROJECT_PATH: FinancialControlSystem-Backend/FinancialSystem.Web/FinancialSystem.Web.csproj
+
+  RUNTIME_IDENTIFIER: win-x86
+  
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read 
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+
+      - name: Restore and Build
+        run: |
+          dotnet restore ${{ env.PROJECT_PATH }}
+          dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+
+
+      - name: dotnet publish (Self-Contained)
+
+        run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o "${{env.DOTNET_ROOT}}/myapp" --self-contained true -r ${{ env.RUNTIME_IDENTIFIER }}
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/myapp
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    permissions:
+      id-token: write 
+      contents: read 
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: .net-app
+          
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D71E18FF340A4286B72224EA5A29FBA4 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7F54467AA2214D99927B635EE735D2B3 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1CABC8801A8A4707A597E35C2AF4E8C4 }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'finvision-backend'
+          slot-name: 'Production'
+          package: . 

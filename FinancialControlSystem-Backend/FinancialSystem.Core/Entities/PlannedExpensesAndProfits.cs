@@ -11,7 +11,7 @@ namespace FinancialSystem.Core.Entities
     {
         public PlannedExpensesAndProfits()
         {
-            CreationTime = DateTime.UtcNow;
+            CreationTime = DateTime.UtcNow.AddHours(-3);
         }
 
         [ForeignKey("EnvironmentId ")]
