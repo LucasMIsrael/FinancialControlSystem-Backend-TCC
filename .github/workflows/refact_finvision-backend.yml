@@ -6,7 +6,7 @@ name: Build and deploy ASP.Net Core Self-Contained to Azure Web App - finvision-
 on:
   push:
     branches:
-      - Refact 
+      - main
   workflow_dispatch:
 
 env:
@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read 
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -29,15 +29,12 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-
       - name: Restore and Build
         run: |
           dotnet restore ${{ env.PROJECT_PATH }}
           dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
 
-
       - name: dotnet publish (Self-Contained)
-
         run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o "${{env.DOTNET_ROOT}}/myapp" --self-contained true -r ${{ env.RUNTIME_IDENTIFIER }}
 
       - name: Upload artifact for deployment job
@@ -50,8 +47,8 @@ jobs:
     runs-on: windows-latest
     needs: build
     permissions:
-      id-token: write 
-      contents: read 
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
@@ -59,7 +56,6 @@ jobs:
         with:
           name: .net-app
           
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -73,4 +69,4 @@ jobs:
         with:
           app-name: 'finvision-backend'
           slot-name: 'Production'
-          package: . 
+          package: .
