@@ -14,8 +14,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -35,12 +33,13 @@ jobs:
       working-directory: FinancialControlSystem-Backend/FinancialSystem.Test
       run: dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=cobertura
 
-    - name: Verify coverage file
+    - name: Verify coverage file exists
       run: ls -R FinancialControlSystem-Backend/FinancialSystem.Test/Coverage
 
     - name: SonarCloud Scan
-      uses: SonarSource/sonarqube-scan-action@v6
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      uses: SonarSource/sonarcloud-github-action@v2
       with:
         projectBaseDir: FinancialControlSystem-Backend
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
