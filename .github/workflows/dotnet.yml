@@ -20,25 +20,33 @@ jobs:
       with:
         dotnet-version: 9.0.x
 
+    - name: Install SonarCloud Scanner for .NET
+      run: dotnet tool install --global dotnet-sonarscanner
+
+    - name: Begin SonarCloud analysis
+      run: |
+        dotnet sonarscanner begin \
+        /k:"LucasMIsrael_FinancialControlSystem-Backend-TCC" \
+        /o:"lucasmisrael" \
+        /d:sonar.host.url="https://sonarcloud.io" \
+        /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+        /d:sonar.cs.opencover.reportsPaths="FinancialControlSystem-Backend/FinancialSystem.Test/Coverage/coverage.cobertura.xml"
+
     - name: Restore
       run: dotnet restore FinancialControlSystem-Backend/FinancialControlSystem.sln
 
     - name: Build
-      run: dotnet build FinancialControlSystem-Backend/FinancialControlSystem.sln --no-restore --configuration Release
+      run: dotnet build FinancialControlSystem-Backend/FinancialControlSystem.sln --configuration Release
 
-    - name: Create Coverage Directory
+    - name: Create coverage directory
       run: mkdir -p FinancialControlSystem-Backend/FinancialSystem.Test/Coverage
 
     - name: Test with coverage
-      run: dotnet test FinancialControlSystem-Backend/FinancialSystem.Test/FinancialSystem.Test.csproj --no-build --configuration Release /p:CollectCoverage=true /p:CoverletOutput=FinancialControlSystem-Backend/FinancialSystem.Test/Coverage/coverage.cobertura.xml /p:CoverletOutputFormat=cobertura
+      run: dotnet test FinancialControlSystem-Backend/FinancialSystem.Test/FinancialSystem.Test.csproj \
+            --configuration Release \
+            /p:CollectCoverage=true \
+            /p:CoverletOutput=FinancialControlSystem-Backend/FinancialSystem.Test/Coverage/coverage.cobertura.xml \
+            /p:CoverletOutputFormat=cobertura
 
-    - name: Verify coverage file exists
-      run: ls -R FinancialControlSystem-Backend/FinancialSystem.Test/Coverage
-
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@v2
-      with:
-        projectBaseDir: FinancialControlSystem-Backend
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: End SonarCloud analysis
+      run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
