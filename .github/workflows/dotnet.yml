@@ -1,4 +1,4 @@
-name: Build, Test and SonarCloud
+name: Build and Test .NET
 
 on:
   push:
@@ -10,36 +10,20 @@ on:
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-
-    - name: Restore
+    - name: Restore dependencies
       run: dotnet restore FinancialControlSystem-Backend/FinancialControlSystem.sln
 
     - name: Build
       run: dotnet build FinancialControlSystem-Backend/FinancialControlSystem.sln --no-restore --configuration Release
 
-    - name: Create coverage folder
-      run: mkdir -p FinancialControlSystem-Backend/FinancialSystem.Test/Coverage
-
-    - name: Test with coverage
-      working-directory: FinancialControlSystem-Backend/FinancialSystem.Test
-      run: dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=cobertura
-
-    - name: Verify coverage file exists
-      run: ls -R FinancialControlSystem-Backend/FinancialSystem.Test/Coverage
-
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@v2
-      with:
-        projectBaseDir: FinancialControlSystem-Backend
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Test
+      run: dotnet test FinancialControlSystem-Backend/FinancialControlSystem.sln --no-build --configuration Release --verbosity normal
