@@ -26,8 +26,12 @@ jobs:
     - name: Build
       run: dotnet build FinancialControlSystem-Backend/FinancialControlSystem.sln --no-restore --configuration Release
 
+    - name: Create coverage folder
+      run: mkdir -p FinancialControlSystem-Backend/FinancialSystem.Test/Coverage
+
     - name: Test with coverage
-      run: dotnet test FinancialControlSystem-Backend/FinancialSystem.Test/FinancialSystem.Test.csproj --configuration Release /p:CollectCoverage=true /p:CoverletOutput=FinancialControlSystem-Backend/FinancialSystem.Test/Coverage/coverage.cobertura.xml /p:CoverletOutputFormat=cobertura
+      working-directory: FinancialControlSystem-Backend/FinancialSystem.Test
+      run: dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=cobertura
 
     - name: Verify coverage file exists
       run: ls -R FinancialControlSystem-Backend/FinancialSystem.Test/Coverage
