@@ -29,6 +29,9 @@ jobs:
     - name: Test with coverage
       run: dotnet test FinancialControlSystem-Backend/FinancialSystem.Test/FinancialSystem.Test.csproj --no-build --configuration Release /p:CollectCoverage=true /p:CoverletOutput=Coverage/coverage.cobertura.xml /p:CoverletOutputFormat=cobertura
 
+    - name: Verify coverage file exists
+      run: ls -R FinancialControlSystem-Backend/FinancialSystem.Test/Coverage
+
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@v2
       with:
