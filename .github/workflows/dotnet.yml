@@ -15,15 +15,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-    - name: Restore dependencies
+
+    - name: Restore
       run: dotnet restore FinancialControlSystem-Backend/FinancialControlSystem.sln
 
     - name: Build
       run: dotnet build FinancialControlSystem-Backend/FinancialControlSystem.sln --no-restore --configuration Release
 
-    - name: Test
-      run: dotnet test FinancialControlSystem-Backend/FinancialControlSystem.sln --no-build --configuration Release --verbosity normal
+    - name: Test with coverage
+      run: dotnet test FinancialControlSystem-Backend/FinancialControlSystem.sln --no-build --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Coverage/
+
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@v2
+      with:
+        projectBaseDir: FinancialControlSystem-Backend
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
