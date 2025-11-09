@@ -31,7 +31,7 @@ jobs:
 
     - name: Test with coverage
       working-directory: FinancialControlSystem-Backend/FinancialSystem.Test
-      run: dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=cobertura
+      run: dotnet test --configuration Release /p:CollectCoverage=true /p:CoverletOutput=Coverage/ /p:CoverletOutputFormat=OpenCover
 
     - name: Verify coverage file exists
       run: ls -R FinancialControlSystem-Backend/FinancialSystem.Test/Coverage
