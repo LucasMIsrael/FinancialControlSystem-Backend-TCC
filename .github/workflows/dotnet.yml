@@ -21,10 +21,10 @@ jobs:
         dotnet-version: 9.0.x
 
     - name: Restore
-      run: dotnet restore FinancialControlSystem.sln
+      run: dotnet restore FinancialControlSystem-Backend/FinancialControlSystem.sln
 
     - name: Build
-      run: dotnet build FinancialControlSystem.sln --no-restore --configuration Release
+      run: dotnet build FinancialControlSystem-Backend/FinancialControlSystem.sln --no-restore --configuration Release
 
     - name: Test with coverage
       run: dotnet test FinancialSystem.Test/FinancialSystem.Test.csproj --no-build --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=Coverage/
@@ -32,7 +32,7 @@ jobs:
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@v2
       with:
-        projectBaseDir: .
+        projectBaseDir: FinancialControlSystem-Backend
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
