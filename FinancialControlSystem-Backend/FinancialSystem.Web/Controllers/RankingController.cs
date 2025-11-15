@@ -9,10 +9,13 @@ namespace FinancialSystem.Web.Controllers
     public class RankingController : Controller
     {
         private readonly IRankingAppService _rankingAppService;
+        private readonly ILogger<RankingController> _logger;
 
-        public RankingController(IRankingAppService rankingAppService)
+        public RankingController(IRankingAppService rankingAppService,
+                                 ILogger<RankingController> logger)
         {
             _rankingAppService = rankingAppService;
+            _logger = logger;
         }
 
         [HttpGet("get")]
@@ -25,6 +28,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar ranking de ambientes: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

@@ -3,6 +3,7 @@ using FinancialSystem.Application.Shared.Dtos.Environment;
 using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System.Linq.Expressions;
 
@@ -21,7 +22,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockAppSession.Setup(x => x.UserId).Returns(123); // simula usuário logado
             mockAppSession.SetupProperty(x => x.EnvironmentId); // se precisar setar no fluxo
 
-            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object,
+                                                            mockRepo.Object,
+                                                            mockLogger.Object);
 
             var input = new EnvironmentDataDto
             {
@@ -50,7 +55,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object,
+                                                            mockRepo.Object,
+                                                            mockLogger.Object);
 
             var input = new EnvironmentDataDto { Description = "desc", Name = "EnvTest" };
 
@@ -73,7 +82,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object,
+                                                            mockRepo.Object,
+                                                            mockLogger.Object);
 
             var input = new EnvironmentDataDto
             {
@@ -103,7 +116,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object,
+                                                            mockRepo.Object,
+                                                            mockLogger.Object);
 
             var input = new EnvironmentDataDto
             {
@@ -132,7 +149,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object,
+                                                            mockRepo.Object,
+                                                            mockLogger.Object);
 
             // act
             var exception = await Record.ExceptionAsync(() => service.DeleteEnvironment(env.Id));
@@ -153,7 +174,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object,
+                                                            mockRepo.Object,
+                                                            mockLogger.Object);
 
             // act & assert
             await Assert.ThrowsAsync<Exception>(() => service.DeleteEnvironment(Guid.NewGuid()));
@@ -201,7 +226,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object,
+                                                            mockRepo.Object,
+                                                            mockLogger.Object);
 
             // act
             var result = await service.GetEnvironment(env.Id);
@@ -223,7 +252,11 @@ namespace FinancialSystem.Test.EnvironmentTests
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new EnvironmentSettingsAppService(mockAppSession.Object, mockRepo.Object);
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(mockAppSession.Object,
+                                                            mockRepo.Object,
+                                                            mockLogger.Object);
 
             // act
             var result = await service.GetEnvironment(Guid.NewGuid());
