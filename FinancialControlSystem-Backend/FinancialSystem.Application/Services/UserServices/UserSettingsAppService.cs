@@ -4,6 +4,7 @@ using FinancialSystem.Application.Shared.Interfaces.UserServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,13 +18,16 @@ namespace FinancialSystem.Application.Services.UserServices
     {
         private readonly IGeneralRepository<Users> _usersRepository;
         private readonly JwtSettings _jwtSettings;
+        private readonly ILogger<UserSettingsAppService> _logger;
 
         public UserSettingsAppService(IAppSession appSession,
                                       IGeneralRepository<Users> usersRepository,
-                                      IOptions<JwtSettings> jwtOptions) : base(appSession)
+                                      IOptions<JwtSettings> jwtOptions,
+                                      ILogger<UserSettingsAppService> logger) : base(appSession)
         {
             _usersRepository = usersRepository;
             _jwtSettings = jwtOptions.Value;
+            _logger = logger;
         }
 
         #region RegisterUser
@@ -56,6 +60,7 @@ namespace FinancialSystem.Application.Services.UserServices
             };
 
             await _usersRepository.InsertAsync(userData);
+            _logger.LogInformation($"Usuário cadastrado com sucesso: {userData.Id} - {userData.Name}");
         }
         #endregion
 
@@ -91,10 +96,13 @@ namespace FinancialSystem.Application.Services.UserServices
                 };
 
                 var token = tokenHandler.CreateToken(tokenDescriptor);
+
+                _logger.LogInformation($"Login efetuado - Usuário: {user.Id} - {user.Name}");
                 return tokenHandler.WriteToken(token);
             }
             catch (Exception ex)
             {
+                _logger.LogError($"FALHA AO EFETUAR LOGIN: {ex.Message}");
                 throw new Exception(ex.Message);
             }
         }

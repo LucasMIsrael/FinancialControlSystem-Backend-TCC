@@ -10,10 +10,13 @@ namespace FinancialSystem.Web.Controllers
     public class GoalsManipulationController : Controller
     {
         private readonly IGoalsSettingsAppService _goalsSettingsAppService;
+        private readonly ILogger<GoalsManipulationController> _logger;
 
-        public GoalsManipulationController(IGoalsSettingsAppService goalsSettingsAppService)
+        public GoalsManipulationController(IGoalsSettingsAppService goalsSettingsAppService,
+                                           ILogger<GoalsManipulationController> logger)
         {
             _goalsSettingsAppService = goalsSettingsAppService;
+            _logger = logger;
         }
 
         [HttpPost("create/goal")]
@@ -27,6 +30,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao cadastrar nova Meta: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -42,6 +46,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao atualizar Meta: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -57,6 +62,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao excluir Meta: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -71,6 +77,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar lista de Metas: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -86,6 +93,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao atualizar Metas alcançadas: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

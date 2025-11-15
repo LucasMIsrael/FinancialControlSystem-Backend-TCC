@@ -10,10 +10,13 @@ namespace FinancialSystem.Web.Controllers
     public class TransactionManipulationController : Controller
     {
         private readonly ITransactionAppService _transactionAppService;
+        private readonly ILogger<TransactionManipulationController> _logger;
 
-        public TransactionManipulationController(ITransactionAppService transactionAppService)
+        public TransactionManipulationController(ITransactionAppService transactionAppService,
+                                                 ILogger<TransactionManipulationController> logger)
         {
             _transactionAppService = transactionAppService;
+            _logger = logger;
         }
 
         [HttpPost("create/planned")]
@@ -27,6 +30,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao criar transação planejada: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -42,6 +46,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao criar transação inesperada: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -57,6 +62,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao atualizar transação planejada: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -72,6 +78,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao atualizar transação inesperada: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -87,6 +94,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao excluir transação: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -101,6 +109,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar lista de transações planejadas: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -115,6 +124,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar lista de transações inesperadas: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -130,6 +140,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao atualizar saldo total com base nas trasanções: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

@@ -10,10 +10,13 @@ namespace FinancialSystem.Web.Controllers
     public class DashboardsController : Controller
     {
         private readonly IDashboardsAppService _dashAppService;
+        private readonly ILogger<DashboardsController> _logger;
 
-        public DashboardsController(IDashboardsAppService dashAppService)
+        public DashboardsController(IDashboardsAppService dashAppService,
+                                    ILogger<DashboardsController> logger)
         {
             _dashAppService = dashAppService;
+            _logger = logger;
         }
 
         [HttpGet("get/financial-summary")]
@@ -26,6 +29,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar dados para sumário financeiro: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -40,6 +44,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar as metas mais alcançadas: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -54,6 +59,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao efetuar análise de despesas inesperadas: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -68,6 +74,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar dados de metas não recorrentes: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -82,6 +89,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar dados para sumário financeiro: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -96,6 +104,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar períodos com metas mais alcançadas: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -115,6 +124,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao efetuar projeção de saldo total: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -130,6 +140,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao atualizar saldo total: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -145,6 +156,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao efetuar comunicação com IA: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

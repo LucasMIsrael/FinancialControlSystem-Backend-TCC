@@ -10,10 +10,13 @@ namespace FinancialSystem.Web.Controllers
     public class UserController : Controller
     {
         private readonly IUserSettingsAppService _userSettingsAppService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserSettingsAppService userSettingsAppService)
+        public UserController(IUserSettingsAppService userSettingsAppService,
+                              ILogger<UserController> logger)
         {
             _userSettingsAppService = userSettingsAppService;
+            _logger = logger;
         }
 
         [HttpGet("get/user")]
@@ -26,6 +29,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao buscar dados do usuário: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }
@@ -41,6 +45,7 @@ namespace FinancialSystem.Web.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao atualizar dados do usuário: {ex.Message}");
                 return BadRequest(ex.Message);
             }
         }

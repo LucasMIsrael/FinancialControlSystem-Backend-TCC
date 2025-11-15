@@ -4,6 +4,7 @@ using FinancialSystem.Application.Shared.Interfaces.EnvironmentServices;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Linq.Dynamic.Core;
 using System.Text.RegularExpressions;
 
@@ -12,11 +13,14 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
     public class EnvironmentSettingsAppService : AppServiceBase, IEnvironmentSettingsAppService
     {
         private readonly IGeneralRepository<Environments> _environmentsRepository;
+        private readonly ILogger<EnvironmentSettingsAppService> _logger;
 
         public EnvironmentSettingsAppService(IAppSession appSession,
-                                             IGeneralRepository<Environments> environmentsRepository) : base(appSession)
+                                             IGeneralRepository<Environments> environmentsRepository,
+                                             ILogger<EnvironmentSettingsAppService> logger) : base(appSession)
         {
             _environmentsRepository = environmentsRepository;
+            _logger = logger;
         }
 
         #region InsertEnvironment
@@ -34,9 +38,11 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 };
 
                 await _environmentsRepository.InsertAsync(newEnvironment);
+                _logger.LogInformation($"Ambiente cadastrado com sucesso: {newEnvironment.Id} - {newEnvironment.Name}");
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao cadastrar ambiente: {ex.Message}");
                 throw new Exception(ex.Message);
             }
         }
@@ -63,6 +69,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             }
             catch (Exception ex)
             {
+                _logger.LogError($"ERRO ao atualizar ambiente: {ex.Message}");
                 throw new Exception(ex.Message);
             }
         }
@@ -77,6 +84,8 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 throw new Exception("Ambiente não encontrado para exclusão");
 
             await _environmentsRepository.DeleteAsync(environment);
+            _logger.LogInformation($"Ambiente deletado com sucesso: " +
+                                   $"{environment.Id} - {environment.Name}");
         }
         #endregion
 

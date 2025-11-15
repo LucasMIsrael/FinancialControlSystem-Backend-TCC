@@ -4,6 +4,7 @@ using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Core.Entities;
 using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System.Linq.Expressions;
@@ -18,6 +19,7 @@ namespace FinancialSystem.Test.UserTests
             //arrange
             var mockRepo = new Mock<IGeneralRepository<Users>>();
             var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+            var mockLogger = new Mock<ILogger<UserSettingsAppService>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
@@ -32,7 +34,10 @@ namespace FinancialSystem.Test.UserTests
 
             mockRepo.Setup(r => r.InsertAsync(It.IsAny<Users>())).Returns(Task.CompletedTask);
 
-            var service = new UserSettingsAppService(mockAppSession.Object, mockRepo.Object, mockJwtSettings.Object);
+            var service = new UserSettingsAppService(mockAppSession.Object,
+                                                     mockRepo.Object,
+                                                     mockJwtSettings.Object,
+                                                     mockLogger.Object);
 
             //act e assert
             var exception = await Record.ExceptionAsync(() => service.RegisterUser(user));
@@ -48,6 +53,8 @@ namespace FinancialSystem.Test.UserTests
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
+
+            var mockLogger = new Mock<ILogger<UserSettingsAppService>>();
 
             var validEmail = "joao@email.com";
             var validPassword = "123456";
@@ -82,7 +89,9 @@ namespace FinancialSystem.Test.UserTests
             };
 
             var options = Options.Create(jwtSettings);
-            var service = new UserSettingsAppService(mockAppSession.Object, mockRepo.Object, options);
+            var service = new UserSettingsAppService(mockAppSession.Object,
+                                                     mockRepo.Object, options,
+                                                     mockLogger.Object);
 
             //act
             var result = await service.UserLogin(loginDto);
@@ -100,6 +109,8 @@ namespace FinancialSystem.Test.UserTests
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
+
+            var mockLogger = new Mock<ILogger<UserSettingsAppService>>();
 
             var validUser = new Users
             {
@@ -122,7 +133,9 @@ namespace FinancialSystem.Test.UserTests
             };
 
             var jwtOptions = Options.Create(jwtSettings);
-            var service = new UserSettingsAppService(mockAppSession.Object, mockRepo.Object, jwtOptions);
+            var service = new UserSettingsAppService(mockAppSession.Object,
+                                                     mockRepo.Object, jwtOptions,
+                                                     mockLogger.Object);
 
             var invalidLogin = new UserDataDto
             {
@@ -148,12 +161,15 @@ namespace FinancialSystem.Test.UserTests
                     .ReturnsAsync(user);
 
             var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+            var mockLogger = new Mock<ILogger<UserSettingsAppService>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new UserSettingsAppService(mockAppSession.Object, mockRepo.Object, mockJwtSettings.Object);
+            var service = new UserSettingsAppService(mockAppSession.Object,
+                                                     mockRepo.Object, mockJwtSettings.Object,
+                                                     mockLogger.Object);
 
             // act
             var result = await service.GetUserInformations();
@@ -174,12 +190,15 @@ namespace FinancialSystem.Test.UserTests
                     .ReturnsAsync((Users)null);
 
             var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+            var mockLogger = new Mock<ILogger<UserSettingsAppService>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new UserSettingsAppService(mockAppSession.Object, mockRepo.Object, mockJwtSettings.Object);
+            var service = new UserSettingsAppService(mockAppSession.Object,
+                                                     mockRepo.Object, mockJwtSettings.Object,
+                                                     mockLogger.Object);
 
             // act & assert
             await Assert.ThrowsAsync<Exception>(() => service.GetUserInformations());
@@ -198,12 +217,15 @@ namespace FinancialSystem.Test.UserTests
             mockRepo.Setup(r => r.UpdateAsync(It.IsAny<Users>())).Returns(Task.CompletedTask);
 
             var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+            var mockLogger = new Mock<ILogger<UserSettingsAppService>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new UserSettingsAppService(mockAppSession.Object, mockRepo.Object, mockJwtSettings.Object);
+            var service = new UserSettingsAppService(mockAppSession.Object,
+                                                     mockRepo.Object, mockJwtSettings.Object,
+                                                     mockLogger.Object);
 
             var input = new UserDataForUpdateDto
             {
@@ -234,12 +256,15 @@ namespace FinancialSystem.Test.UserTests
                     .ReturnsAsync((Users)null);
 
             var mockJwtSettings = new Mock<IOptions<JwtSettings>>();
+            var mockLogger = new Mock<ILogger<UserSettingsAppService>>();
 
             var mockAppSession = new Mock<IAppSession>();
             mockAppSession.Setup(x => x.UserId).Returns(123);
             mockAppSession.SetupProperty(x => x.EnvironmentId);
 
-            var service = new UserSettingsAppService(mockAppSession.Object, mockRepo.Object, mockJwtSettings.Object);
+            var service = new UserSettingsAppService(mockAppSession.Object,
+                                                     mockRepo.Object, mockJwtSettings.Object,
+                                                     mockLogger.Object);
 
             var input = new UserDataForUpdateDto
             {
