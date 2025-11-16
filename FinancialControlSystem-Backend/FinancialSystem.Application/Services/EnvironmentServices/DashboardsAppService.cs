@@ -7,6 +7,7 @@ using FinancialSystem.Core.Settings;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Globalization;
 using System.Net.Http.Json;
 
 namespace FinancialSystem.Application.Services.EnvironmentServices
@@ -73,7 +74,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 CurrentBalance = balance,
                 TotalProfit = totalProfit,
                 TotalExpense = totalExpense,
-                ProfitMargin = $"{margin:F1}%",
+                ProfitMargin = margin.ToString("F1", new CultureInfo("pt-BR")) + "%",
                 Level = environment.FinancialControlLevel
             };
         }
@@ -212,7 +213,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             {
                 TotalUnexpectedExpenses = totalUnexpectedExpenses,
                 TotalProfits = totalProfits,
-                Percentage = $"{percentage:F1}%",
+                Percentage = percentage.ToString("F1", new CultureInfo("pt-BR")) + "%",
                 AlertLevel = alertLevel
             };
         }

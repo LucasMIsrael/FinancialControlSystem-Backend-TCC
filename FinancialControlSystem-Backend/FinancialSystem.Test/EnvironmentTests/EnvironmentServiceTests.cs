@@ -2,6 +2,7 @@
 using FinancialSystem.Application.Shared.Dtos.Environment;
 using FinancialSystem.Application.Shared.Interfaces;
 using FinancialSystem.Core.Entities;
+using FinancialSystem.Core.Enums;
 using FinancialSystem.EntityFrameworkCore.Repositories.RepositoryInterfaces;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -185,34 +186,6 @@ namespace FinancialSystem.Test.EnvironmentTests
         }
 
         [Fact]
-        public async Task ShouldReturnListOfEnvironments()
-        {
-            // arrange
-            //var environments = new List<Environments>
-            //{
-            //    new Environments { Id = Guid.NewGuid(), Name = "Env1", UserID = 123 },
-            //    new Environments { Id = Guid.NewGuid(), Name = "Env2", UserID = 123 }
-            //};
-
-            //var mockRepo = new Mock<IGeneralRepository<Environments>>();
-            //mockRepo.Setup(r => r.GetAll()).Returns(environments.AsQueryable());
-
-            //var mockHttp = new Mock<IHttpContextAccessor>();
-            //var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "123") };
-            //var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
-            //var context = new DefaultHttpContext { User = user };
-            //mockHttp.Setup(x => x.HttpContext).Returns(context);
-
-            //var service = new EnvironmentSettingsAppService(mockRepo.Object, mockHttp.Object);
-
-            //// act
-            //var result = await service.GetAllEnvironments();
-
-            //// assert
-            //Assert.Equal(2, result.Count);
-        }
-
-        [Fact]
         public async Task ShouldReturnEnvironmentById()
         {
             // arrange
@@ -264,6 +237,132 @@ namespace FinancialSystem.Test.EnvironmentTests
             // assert
             Assert.NotNull(result);
             Assert.Equal(null, result.Id);
+        }
+
+        [Fact]
+        public async Task ShouldReturnEmptyList_WhenNoEnvironmentsExist()
+        {
+            var userId = 123L;
+
+            var mockApp = new Mock<IAppSession>();
+            mockApp.Setup(x => x.UserId).Returns(userId);
+
+            var asyncList = new AsyncEnumerable<Environments>(new List<Environments>());
+
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.GetAll()).Returns(asyncList);
+
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(
+                mockApp.Object, mockRepo.Object, mockLogger.Object);
+
+            var result = await service.GetAllEnvironments();
+
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task ShouldReturnOnlyUserEnvironments()
+        {
+            var userId = 99L;
+
+            var mockApp = new Mock<IAppSession>();
+            mockApp.Setup(x => x.UserId).Returns(userId);
+
+            var list = new List<Environments>
+            {
+                new Environments { Id = Guid.NewGuid(), UserID = userId, Name = "Env1" },
+                new Environments { Id = Guid.NewGuid(), UserID = 555, Name = "Env2" },
+                new Environments { Id = Guid.NewGuid(), UserID = userId, Name = "Env3" }
+            };
+
+            var asyncList = new AsyncEnumerable<Environments>(list);
+
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.GetAll()).Returns(asyncList);
+
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(
+                mockApp.Object, mockRepo.Object, mockLogger.Object);
+
+            var result = await service.GetAllEnvironments();
+
+            Assert.Equal(2, result.Count);
+            Assert.Contains(result, r => r.Name == "Env1");
+            Assert.Contains(result, r => r.Name == "Env3");
+        }
+
+        [Fact]
+        public async Task ShouldMapEnvironmentPropertiesCorrectly()
+        {
+            var userId = 440L;
+
+            var mockApp = new Mock<IAppSession>();
+            mockApp.Setup(x => x.UserId).Returns(userId);
+
+            var env = new Environments
+            {
+                Id = Guid.NewGuid(),
+                Name = "Casa",
+                Description = "Ambiente pessoal",
+                UserID = userId,
+                Type = EnvironmentTypeEnum.Personal
+            };
+
+            var asyncList = new AsyncEnumerable<Environments>(
+                new List<Environments> { env }
+            );
+
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.GetAll()).Returns(asyncList);
+
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(
+                mockApp.Object, mockRepo.Object, mockLogger.Object);
+
+            var result = await service.GetAllEnvironments();
+
+            Assert.Single(result);
+            Assert.Equal(env.Id, result[0].Id);
+            Assert.Equal(env.Name, result[0].Name);
+            Assert.Equal(env.Description, result[0].Description);
+            Assert.Equal(env.Type, result[0].Type);
+        }
+
+        [Fact]
+        public async Task ShouldReturnEnvironmentsOrderedByCreationTime()
+        {
+            var userId = 77L;
+
+            var mockApp = new Mock<IAppSession>();
+            mockApp.Setup(x => x.UserId).Returns(userId);
+
+            var env1 = new Environments { Id = Guid.NewGuid(), UserID = userId, Name = "A", CreationTime = DateTime.UtcNow.AddHours(-5) };
+            var env2 = new Environments { Id = Guid.NewGuid(), UserID = userId, Name = "B", CreationTime = DateTime.UtcNow.AddHours(-2) };
+            var env3 = new Environments { Id = Guid.NewGuid(), UserID = userId, Name = "C", CreationTime = DateTime.UtcNow.AddHours(-1) };
+
+            var asyncList = new AsyncEnumerable<Environments>
+            (
+                new List<Environments> { env3, env1, env2 }
+            );
+
+            var mockRepo = new Mock<IGeneralRepository<Environments>>();
+            mockRepo.Setup(r => r.GetAll()).Returns(asyncList);
+
+            var mockLogger = new Mock<ILogger<EnvironmentSettingsAppService>>();
+
+            var service = new EnvironmentSettingsAppService(
+                mockApp.Object, mockRepo.Object, mockLogger.Object);
+
+            var result = await service.GetAllEnvironments();
+
+            Assert.Equal(3, result.Count);
+            Assert.Equal("A", result[0].Name);
+            Assert.Equal("B", result[1].Name);
+            Assert.Equal("C", result[2].Name);
         }
     }
 }
