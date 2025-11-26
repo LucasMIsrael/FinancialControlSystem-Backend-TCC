@@ -14,12 +14,16 @@
 ## 🔎 Visão Geral  
 Este repositório contém o backend do **FinVision**, um sistema de controle financeiro com suporte a **Multi-Tenancy**, desenvolvido como trabalho de conclusão de curso (TCC/Portfólio) para o curso de Engenharia de Software na Universidade Católica de SC - Joinville. O sistema permite a gestão de finanças, oferecendo isolamento entre diferentes cenários financeiros do usuário - tenants - e persistência segura dos dados.
 
+<br>
+
 ## 📦 Tecnologias utilizadas  
 - Linguagem principal: **C# (.NET 9)**  
 - ORM / Acesso a dados: **Entity Framework**  
 - Banco de dados: **PostgreSQL**  
 - Autenticação: **JWT / Bearer Token**
 - Arquitetura: **MVC**
+
+<br>
 
 ## 🛠️ Como rodar localmente  
 
@@ -48,8 +52,9 @@ update-database
 
 # 7. Endpoints devem estar disponíveis em: https://localhost:5243/swagger/index.html
 ```
+<br>
 
-# 🚀: Funcionalidades do projeto
+## 🚀: Funcionalidades do projeto
 - `Multi-Tenancy`: suporte a múltiplos tenants/ambientes com isolamento de dados;
 - `CRUD de entidades`: ambientes, transações planejadas, inesperadas (para despesas e/ou recebimentos que ocorreram sem conhecimento prévio) e metas (pontuais ou não);
 - `Metas`: metas pontuais ou recorrentes para serem alcançadas com base nas transações e saldo total;
