@@ -13,12 +13,15 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
     public class GoalsSettingsAppService : AppServiceBase, IGoalsSettingsAppService
     {
         private readonly IGeneralRepository<Goals> _goalsRepository;
+        private readonly IGeneralRepository<PlannedExpensesAndProfits> _plannedTransactionsRepository;
         private TimeZoneInfo _tzBrasilia = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
 
         public GoalsSettingsAppService(IAppSession appSession,
-                                       IGeneralRepository<Goals> goalsRepository) : base(appSession)
+                                       IGeneralRepository<Goals> goalsRepository,
+                                       IGeneralRepository<PlannedExpensesAndProfits> plannedTransactionsRepository) : base(appSession)
         {
             _goalsRepository = goalsRepository;
+            _plannedTransactionsRepository = plannedTransactionsRepository;
         }
 
         #region InsertNewGoal
@@ -30,6 +33,21 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                                                        .OrderByDescending(x => x.CreationTime)
                                                        .Select(x => x.GoalNumber)
                                                        .FirstOrDefault();
+
+            if (input.PeriodType.HasValue && input.PeriodType != GoalPeriodTypeEnum.None)
+            {
+                var recurrence = ConvertToRecurrence(input.PeriodType.Value);
+
+                var transactions = _plannedTransactionsRepository
+                                   .GetAll()
+                                   .Any(x => x.EnvironmentId == EnvironmentId &&
+                                             x.RecurrenceType == recurrence &&
+                                            !x.IsDeleted &&
+                                             x.TransactionDate.Date <= DateTime.UtcNow.Date);
+                if (!transactions)
+                    throw new Exception("Não existem transações com o período selecionado para alcançar a meta");
+            }
+
             var goal = new Goals
             {
                 Id = Guid.NewGuid(),
@@ -58,6 +76,22 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
 
             if (goal == null)
                 throw new Exception("Meta não encontrada");
+
+            if (input.PeriodType.HasValue &&
+                input.PeriodType != GoalPeriodTypeEnum.None &&
+                input.PeriodType != goal.PeriodType)
+            {
+                var recurrence = ConvertToRecurrence(input.PeriodType.Value);
+
+                var transactions = _plannedTransactionsRepository
+                                   .GetAll()
+                                   .Any(x => x.EnvironmentId == EnvironmentId &&
+                                             x.RecurrenceType == recurrence &&
+                                            !x.IsDeleted &&
+                                             x.TransactionDate.Date <= DateTime.UtcNow.Date);
+                if (!transactions)
+                    throw new Exception("Não existem transações com o período selecionado para alcançar a meta");
+            }
 
             goal.Description = Sanitize(input.Description);
             goal.SingleDate = input.SingleDate.HasValue ?
@@ -137,18 +171,25 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                 bool achieved = false;
 
                 //meta recorrente
-                if (goal.PeriodType.HasValue && goal.StartDate.HasValue)
+                if (goal.PeriodType.HasValue && 
+                    goal.PeriodType != GoalPeriodTypeEnum.None &&
+                    goal.StartDate.HasValue)
                 {
                     bool isNewPeriod = false;
+
+                    // soma das transações recorrentes
+                    var recurrence = ConvertToRecurrence(goal.PeriodType.Value);
+                    var recurrenceTotal = await GetRecurringTransactionsTotal(recurrence, today);
 
                     switch (goal.PeriodType.Value)
                     {
                         case GoalPeriodTypeEnum.Daily:
+
                             isNewPeriod = !goal.LastEvaluatedDate.HasValue ||
                                            goal.LastEvaluatedDate.Value.Date < today;
 
                             if (isNewPeriod && today >= goal.StartDate.Value.Date &&
-                                goal.Environment.TotalBalance >= goal.Value)
+                                recurrenceTotal >= goal.Value)
                                 achieved = true;
                             break;
 
@@ -166,7 +207,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                                           today.Year != goal.LastEvaluatedDate?.Year;
 
                             if (isNewPeriod && today >= goal.StartDate.Value.Date &&
-                                goal.Environment.TotalBalance >= goal.Value)
+                                recurrenceTotal >= goal.Value)
                                 achieved = true;
                             break;
 
@@ -176,7 +217,7 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                                            goal.LastEvaluatedDate.Value.Year != today.Year;
 
                             if (isNewPeriod && today >= goal.StartDate.Value.Date &&
-                                goal.Environment.TotalBalance >= goal.Value)
+                                recurrenceTotal >= goal.Value)
                                 achieved = true;
                             break;
 
@@ -189,15 +230,16 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                                            goal.LastEvaluatedDate.Value.Year != today.Year;
 
                             if (isNewPeriod && today >= goal.StartDate.Value.Date &&
-                                goal.Environment.TotalBalance >= goal.Value)
+                                recurrenceTotal >= goal.Value)
                                 achieved = true;
                             break;
 
                         case GoalPeriodTypeEnum.Annual:
                             isNewPeriod = !goal.LastEvaluatedDate.HasValue ||
                                            goal.LastEvaluatedDate.Value.Year != today.Year;
+
                             if (isNewPeriod && today >= goal.StartDate.Value.Date &&
-                                goal.Environment.TotalBalance >= goal.Value)
+                                recurrenceTotal >= goal.Value)
                                 achieved = true;
                             break;
                     }
@@ -268,6 +310,35 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
             input = Regex.Replace(input, @"[()<>""'%;+]", string.Empty);
 
             return input.Trim();
+        }
+        #endregion
+
+        #region ConvertToRecurrence
+        private RecurrenceTypeEnum ConvertToRecurrence(GoalPeriodTypeEnum period)
+        {
+            return period switch
+            {
+                GoalPeriodTypeEnum.Daily => RecurrenceTypeEnum.Daily,
+                GoalPeriodTypeEnum.Weekly => RecurrenceTypeEnum.Weekly,
+                GoalPeriodTypeEnum.Monthly => RecurrenceTypeEnum.Monthly,
+                GoalPeriodTypeEnum.Semestral => RecurrenceTypeEnum.Semestral,
+                GoalPeriodTypeEnum.Annual => RecurrenceTypeEnum.Annual,
+                _ => RecurrenceTypeEnum.None
+            };
+        }
+        #endregion
+
+        #region GetRecurringTransactionsTotal
+        private async Task<double> GetRecurringTransactionsTotal(RecurrenceTypeEnum recurrence, DateTime today)
+        {
+            return await _plannedTransactionsRepository
+                         .GetAll()
+                         .Where(x => x.EnvironmentId == EnvironmentId &&
+                                     x.RecurrenceType == recurrence &&
+                                    !x.IsDeleted &&
+                                     x.TransactionDate.Date <= today)
+                         .SumAsync(x => x.Type == FinancialRecordTypeEnum.Profit ? x.Amount :
+                                        x.Type == FinancialRecordTypeEnum.Expense ? -x.Amount : 0.0);
         }
         #endregion
     }
