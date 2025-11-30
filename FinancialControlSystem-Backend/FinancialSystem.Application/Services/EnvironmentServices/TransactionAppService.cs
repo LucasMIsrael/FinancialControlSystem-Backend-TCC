@@ -296,6 +296,14 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                         case RecurrenceTypeEnum.Monthly:
                             shouldApply = !tx.LastProcessedDate.HasValue || tx.LastProcessedDate.Value.Date.AddMonths(1) <= today;
                             break;
+
+                        case RecurrenceTypeEnum.Semestral:
+                            shouldApply = !tx.LastProcessedDate.HasValue || tx.LastProcessedDate.Value.Date.AddMonths(6) <= today;
+                            break;
+
+                        case RecurrenceTypeEnum.Annual:
+                            shouldApply = !tx.LastProcessedDate.HasValue || tx.LastProcessedDate.Value.Date.AddYears(1) <= today;
+                            break;
                     }
 
                     if (tx.TransactionDate.Date <= today && shouldApply)

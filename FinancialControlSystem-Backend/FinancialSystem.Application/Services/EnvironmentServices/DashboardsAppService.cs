@@ -185,10 +185,15 @@ namespace FinancialSystem.Application.Services.EnvironmentServices
                                        .GetAll()
                                        .Where(x => x.EnvironmentId == EnvironmentId &&
                                                    x.Type == FinancialRecordTypeEnum.Profit &&
+                                                  !x.IsDeleted && ((
+                                                   x.LastProcessedDate != null &&
+                                                   x.LastProcessedDate.Value.Date >= startDate &&
+                                                   x.LastProcessedDate.Value.Date <= today) || (
+                                                   x.LastProcessedDate == null &&
                                                    x.TransactionDate.Date >= startDate &&
-                                                   x.TransactionDate.Date <= today &&
-                                                  !x.IsDeleted)
+                                                   x.TransactionDate.Date <= today)))
                                        .ToListAsync();
+
 
             var unplannedProfits = await _unplannedTransactionsRepository
                                          .GetAll()
